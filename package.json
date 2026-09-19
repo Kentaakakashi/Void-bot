@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "check": "node scripts/projectCheck.js"
+    "check": "node scripts/projectCheck.js",
+    "audit": "node scripts/projectCheck.js"
   },
   "engines": {
     "node": ">=24.17.0"
