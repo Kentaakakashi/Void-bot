@@ -24,13 +24,6 @@ const { clearConversation } = require("../../database/repositories/conversations
 const { clearUserMemory, getUserMemory } = require("../../database/repositories/memory");
 const { splitMessage } = require("../../utils/format");
 
-function notificationChoices() {
-  return [
-    { name: "Enabled", value: true },
-    { name: "Disabled", value: false }
-  ];
-}
-
 const data = new SlashCommandBuilder()
   .setName("void")
   .setDescription("Configure and talk to VØID HELPER.")
