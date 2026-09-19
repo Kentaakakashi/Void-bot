@@ -55,7 +55,8 @@ module.exports = {
     }
 
     const now = Date.now();
-    const last = cooldowns.get(message.author.id) || 0;
+    const cooldownKey = message.guild.id + ":" + message.author.id;
+    const last = cooldowns.get(cooldownKey) || 0;
 
     if (now - last < COOLDOWN_MS) {
       return;
@@ -67,7 +68,7 @@ module.exports = {
       return;
     }
 
-    cooldowns.set(message.author.id, now);
+    cooldowns.set(cooldownKey, now);
 
     try {
       await message.channel.sendTyping();
