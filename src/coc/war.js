@@ -146,10 +146,6 @@ function analyzeWar(war, clanTag) {
   const nameByTag = new Map(
     opponentMembers.map((member) => [member?.tag, member?.name || "Unknown"])
   );
-
-  const nameByTag = new Map(
-    opponentMembers.map((member) => [member?.tag, member?.name || "Unknown"])
-  );
   const ownNameByTag = new Map(
     ownMembers.map((member) => [member?.tag, member?.name || "Unknown"])
   );
