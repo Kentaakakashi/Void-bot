@@ -234,6 +234,79 @@ function getAvailableTools() {
     },
     {
       type: "function",
+      name: "get_historical_player_analytics",
+      description: "Analyze the linked user's saved Clash of Clans progression snapshots, including trophy, Town Hall, donation, upgrade, and goal trends.",
+      parameters: {
+        type: "object",
+        properties: {},
+        additionalProperties: false
+      },
+      strict: true
+    },
+    {
+      type: "function",
+      name: "get_historical_war_analytics",
+      description: "Analyze saved classic war performance for a clan across recorded wars.",
+      parameters: {
+        type: "object",
+        properties: {
+          clan_tag: {
+            type: "string",
+            description: "Clash of Clans clan tag including #."
+          }
+        },
+        required: ["clan_tag"],
+        additionalProperties: false
+      },
+      strict: true
+    },
+    {
+      type: "function",
+      name: "get_historical_cwl_analytics",
+      description: "Analyze saved CWL season performance for a clan across recorded seasons.",
+      parameters: {
+        type: "object",
+        properties: {
+          clan_tag: {
+            type: "string",
+            description: "Clash of Clans clan tag including #."
+          }
+        },
+        required: ["clan_tag"],
+        additionalProperties: false
+      },
+      strict: true
+    },
+    {
+      type: "function",
+      name: "get_historical_activity_analytics",
+      description: "Analyze saved clan activity trends including donations, Clan Capital seasons, and tracked Clan Games seasons.",
+      parameters: {
+        type: "object",
+        properties: {
+          clan_tag: {
+            type: "string",
+            description: "Clash of Clans clan tag including #."
+          }
+        },
+        required: ["clan_tag"],
+        additionalProperties: false
+      },
+      strict: true
+    },
+    {
+      type: "function",
+      name: "get_goal_analytics",
+      description: "Analyze the linked user's saved active and completed Clash of Clans goals.",
+      parameters: {
+        type: "object",
+        properties: {},
+        additionalProperties: false
+      },
+      strict: true
+    },
+    {
+      type: "function",
       name: "get_current_war",
       description: "Get the current classic war state for a Clash of Clans clan.",
       parameters: {
