@@ -16,6 +16,13 @@ const { prioritiesEmbed, readinessEmbed, planEmbed, goalsEmbed, latestPlanEmbed 
 const { warAnalysisEmbed, warHistoryEmbed } = require("../../coc/formatWar");
 const { cwlOverviewEmbed, cwlAnalysisEmbed, cwlHistoryEmbed } = require("../../coc/formatCwl");
 const { donationsEmbed, capitalEmbed, clanGamesEmbed, capitalHistoryEmbed } = require("../../coc/formatActivity");
+const {
+  playerAnalyticsEmbed,
+  warAnalyticsEmbed,
+  cwlAnalyticsEmbed,
+  activityAnalyticsEmbed,
+  goalAnalyticsEmbed
+} = require("../../coc/formatAnalytics");
 const { buildPriorities, buildReadiness, buildPlan } = require("../../coc/planner");
 const { analyzeWar } = require("../../coc/war");
 const { analyzeDonations, analyzeCapital, normalizeClanTag } = require("../../coc/clanActivity");
@@ -23,12 +30,26 @@ const { getCwlAnalysis } = require("../../coc/cwl");
 
 const { saveSnapshot, getSnapshots, compareSnapshots } = require("../../database/repositories/progression");
 const { getLinkedAccount, linkAccount, unlinkAccount } = require("../../database/repositories/cocAccounts");
-const { createGoal, getGoals, removeGoal } = require("../../database/repositories/goals");
+const {
+  createGoal,
+  getGoals,
+  removeGoal,
+  updateGoal
+} = require("../../database/repositories/goals");
 const { savePlan, getLatestPlan } = require("../../database/repositories/plans");
 const { saveWar, getWarHistory } = require("../../database/repositories/wars");
 const { saveCwl, getCwlHistory } = require("../../database/repositories/cwl");
 const { saveCapital, getCapitalHistory } = require("../../database/repositories/capital");
-const { setScore, getScores, removeScore } = require("../../database/repositories/clanGames");
+const {
+  setScore,
+  getScores,
+  getSeasonHistory,
+  removeScore
+} = require("../../database/repositories/clanGames");
+const {
+  saveDonation,
+  getDonationHistory
+} = require("../../database/repositories/donations");
 
 function normalizeTag(value) {
   const tag = String(value || "").trim().toUpperCase();
@@ -125,6 +146,10 @@ const data = new SlashCommandBuilder()
         subcommand.setName("goal-remove").setDescription("Remove a persistent progression goal.")
           .addStringOption((option) => option.setName("id").setDescription("Goal ID from /coc planning goals.").setRequired(true).setMaxLength(100))
       )
+      .addSubcommand((subcommand) =>
+        subcommand.setName("goal-complete").setDescription("Mark a progression goal as completed.")
+          .addStringOption((option) => option.setName("id").setDescription("Goal ID from /coc planning goals.").setRequired(true).setMaxLength(100))
+      )
       .addSubcommand((subcommand) => subcommand.setName("plan-latest").setDescription("Show the latest saved progression plan."))
   )
 
@@ -134,6 +159,10 @@ const data = new SlashCommandBuilder()
       .setDescription("Clan Capital, donations, and Clan Games.")
       .addSubcommand((subcommand) =>
         subcommand.setName("donations").setDescription("Show current clan donation intelligence.")
+          .addStringOption((option) => option.setName("tag").setDescription("Clan tag.").setRequired(true).setMaxLength(20))
+      )
+      .addSubcommand((subcommand) =>
+        subcommand.setName("donation-snapshot").setDescription("Save the current clan donation intelligence.")
           .addStringOption((option) => option.setName("tag").setDescription("Clan tag.").setRequired(true).setMaxLength(20))
       )
       .addSubcommand((subcommand) =>
@@ -182,6 +211,31 @@ const data = new SlashCommandBuilder()
       .addSubcommand((subcommand) =>
         subcommand.setName("history").setDescription("Show saved CWL season history.")
           .addStringOption((option) => option.setName("tag").setDescription("Clan tag.").setRequired(true).setMaxLength(20))
+      )
+  )
+
+
+  .addSubcommandGroup((group) =>
+    group
+      .setName("analytics")
+      .setDescription("Historical Clash of Clans analytics.")
+      .addSubcommand((subcommand) =>
+        subcommand.setName("player").setDescription("Analyze your saved account progression timeline.")
+      )
+      .addSubcommand((subcommand) =>
+        subcommand.setName("war").setDescription("Analyze saved classic war performance.")
+          .addStringOption((option) => option.setName("tag").setDescription("Clan tag.").setRequired(true).setMaxLength(20))
+      )
+      .addSubcommand((subcommand) =>
+        subcommand.setName("cwl").setDescription("Analyze saved CWL season performance.")
+          .addStringOption((option) => option.setName("tag").setDescription("Clan tag.").setRequired(true).setMaxLength(20))
+      )
+      .addSubcommand((subcommand) =>
+        subcommand.setName("activity").setDescription("Analyze saved clan activity trends.")
+          .addStringOption((option) => option.setName("tag").setDescription("Clan tag.").setRequired(true).setMaxLength(20))
+      )
+      .addSubcommand((subcommand) =>
+        subcommand.setName("goals").setDescription("Analyze goal completion history.")
       )
   )
 
@@ -277,6 +331,25 @@ async function execute(interaction) {
       return interaction.editReply("🎯 Goal " + goalId + " removed.");
     }
 
+    if (subcommand === "goal-complete") {
+      const goalId = interaction.options.getString("id", true);
+      const updated = await updateGoal(
+        interaction.guildId,
+        interaction.user.id,
+        goalId,
+        {
+          status: "completed",
+          completedAt: new Date().toISOString()
+        }
+      );
+
+      if (!updated) throw new Error("No goal was found with that ID.");
+
+      return interaction.editReply(
+        "🎯 Goal **" + updated.name + "** marked as completed."
+      );
+    }
+
     if (subcommand === "plan-latest") {
       const plan = await getLatestPlan(interaction.guildId, interaction.user.id);
       return interaction.editReply({ embeds: [latestPlanEmbed(plan)] });
@@ -289,6 +362,19 @@ async function execute(interaction) {
       const clan = await getClan(tag);
       const members = await getClanMembers(tag);
       return interaction.editReply({ embeds: [donationsEmbed(analyzeDonations(clan, members))] });
+    }
+
+    if (subcommand === "donation-snapshot") {
+      const tag = normalizeClanTag(interaction.options.getString("tag", true));
+      const clan = await getClan(tag);
+      const members = await getClanMembers(tag);
+      const saved = await saveDonation(
+        interaction.guildId,
+        analyzeDonations(clan, members)
+      );
+      return interaction.editReply(
+        "Donation snapshot saved as " + saved.id + "."
+      );
     }
 
     if (subcommand === "capital") {
@@ -329,6 +415,97 @@ async function execute(interaction) {
       const season = interaction.options.getString("season", true);
       const removed = await removeScore(interaction.guildId, season, interaction.user.id);
       return interaction.editReply(removed ? "Your Clan Games score was removed for season " + season + "." : "No tracked Clan Games score was found for season " + season + ".");
+    }
+  }
+
+  if (group === "analytics") {
+    if (subcommand === "player") {
+      const snapshots = await getSnapshots(
+        interaction.guildId,
+        interaction.user.id,
+        25
+      );
+      const goals = await getGoals(
+        interaction.guildId,
+        interaction.user.id,
+        true
+      );
+      const account = await getLinkedAccount(
+        interaction.guildId,
+        interaction.user.id
+      );
+      return interaction.editReply({
+        embeds: [
+          playerAnalyticsEmbed(
+            require("../../coc/analytics").analyzePlayerHistory(
+              snapshots,
+              goals
+            ),
+            account?.playerTag
+              ? await getPlayer(account.playerTag)
+              : null
+          )
+        ]
+      });
+    }
+
+    if (subcommand === "war") {
+      const tag = normalizeClanTag(interaction.options.getString("tag", true));
+      const history = await getWarHistory(interaction.guildId, tag, 25);
+      return interaction.editReply({
+        embeds: [warAnalyticsEmbed(
+          require("../../coc/analytics").analyzeWarHistory(history),
+          tag
+        )]
+      });
+    }
+
+    if (subcommand === "cwl") {
+      const tag = normalizeClanTag(interaction.options.getString("tag", true));
+      const history = await getCwlHistory(interaction.guildId, tag, 25);
+      return interaction.editReply({
+        embeds: [cwlAnalyticsEmbed(
+          require("../../coc/analytics").analyzeCwlHistory(history),
+          tag
+        )]
+      });
+    }
+
+    if (subcommand === "activity") {
+      const tag = normalizeClanTag(interaction.options.getString("tag", true));
+      const [donations, capital, clanGames] = await Promise.all([
+        getDonationHistory(interaction.guildId, tag, 25),
+        getCapitalHistory(interaction.guildId, tag, 25),
+        getSeasonHistory(interaction.guildId, 10)
+      ]);
+
+      return interaction.editReply({
+        embeds: [
+          activityAnalyticsEmbed(
+            require("../../coc/analytics").analyzeActivityHistory({
+              donations,
+              capital,
+              clanGames
+            }),
+            tag
+          )
+        ]
+      });
+    }
+
+    if (subcommand === "goals") {
+      const goals = await getGoals(
+        interaction.guildId,
+        interaction.user.id,
+        true
+      );
+      return interaction.editReply({
+        embeds: [
+          goalAnalyticsEmbed(
+            require("../../coc/analytics").goalAnalytics(goals)
+          )
+        ]
+      });
     }
   }
 
