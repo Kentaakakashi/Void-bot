@@ -1,0 +1,1 @@
+{"name":"void-helper","version":"1.0.0","description":"VØID HELPER - Personal Clash Intelligence assistant for Discord.","main":"index.js","scripts":{"start":"node index.js","check":"node --check index.js"},"engines":{"node":">=24.17.0"},"dependencies":{"discord.js":"^14.27.0","dotenv":"^17.4.2","firebase-admin":"^14.4.0","openai":"^7.19.0"}}
