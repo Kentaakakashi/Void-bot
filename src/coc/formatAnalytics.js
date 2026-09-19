@@ -346,12 +346,10 @@ function activityAnalyticsEmbed(analysis, clanTag) {
           capital.seasons +
           " saved season(s) • " +
           capital.latestLoot +
-          " latest loot
-" +
+          " latest loot\n" +
           "Loot change across saved seasons: " +
           signed(capital.lootDelta) +
-          "
-Latest season: " +
+          "\nLatest season: " +
           (capital.latestSeason || "—"),
         inline: false
       },
