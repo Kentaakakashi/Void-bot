@@ -41,6 +41,17 @@ const {
 } = require("../../coc/war");
 
 const {
+  analyzeDonations,
+  analyzeCapital,
+  normalizeClanTag
+} = require("../../coc/clanActivity");
+
+const {
+  getClanMembers,
+  getCapitalRaidSeasons
+} = require("../../coc/api");
+
+const {
   getCwlAnalysis
 } = require("../../coc/cwl");
 
@@ -77,6 +88,24 @@ const {
   saveWar,
   getWarHistory
 } = require("../../database/repositories/wars");
+
+const {
+  saveCapital,
+  getCapitalHistory
+} = require("../../database/repositories/capital");
+
+const {
+  setScore,
+  getScores,
+  removeScore
+} = require("../../database/repositories/clanGames");
+
+const {
+  donationsEmbed,
+  capitalEmbed,
+  clanGamesEmbed,
+  capitalHistoryEmbed
+} = require("../../coc/formatActivity");
 
 const {
   saveCwl,
@@ -254,6 +283,104 @@ const data = new SlashCommandBuilder()
     subcommand
       .setName("plan-latest")
       .setDescription("Show your latest saved progression plan.")
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("donations")
+      .setDescription("Show current clan donation intelligence.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("capital")
+      .setDescription("Show Clan Capital intelligence and recent raid seasons.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("capital-snapshot")
+      .setDescription("Save the current Clan Capital analysis.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("capital-history")
+      .setDescription("Show saved Clan Capital history.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("clan-games")
+      .setDescription("Show the tracked Clan Games leaderboard.")
+      .addStringOption((option) =>
+        option
+          .setName("season")
+          .setDescription("Clan Games season identifier.")
+          .setRequired(true)
+          .setMaxLength(80)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("clan-games-set")
+      .setDescription("Set your tracked Clan Games points.")
+      .addStringOption((option) =>
+        option
+          .setName("season")
+          .setDescription("Clan Games season identifier.")
+          .setRequired(true)
+          .setMaxLength(80)
+      )
+      .addIntegerOption((option) =>
+        option
+          .setName("points")
+          .setDescription("Your current Clan Games points.")
+          .setRequired(true)
+          .setMinValue(0)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("clan-games-remove")
+      .setDescription("Remove your tracked Clan Games score.")
+      .addStringOption((option) =>
+        option
+          .setName("season")
+          .setDescription("Clan Games season identifier.")
+          .setRequired(true)
+          .setMaxLength(80)
+      )
   )
 
   .addSubcommand((subcommand) =>
@@ -562,6 +689,103 @@ async function execute(interaction) {
     return interaction.reply({
       embeds: [latestPlanEmbed(plan)]
     });
+  }
+
+  if (subcommand === "donations") {
+    const tag = normalizeClanTag(
+      interaction.options.getString("tag", true)
+    );
+    const clan = await getClan(tag);
+    const members = await getClanMembers(tag);
+
+    return interaction.reply({
+      embeds: [donationsEmbed(analyzeDonations(clan, members))]
+    });
+  }
+
+  if (subcommand === "capital") {
+    const tag = normalizeClanTag(
+      interaction.options.getString("tag", true)
+    );
+    const clan = await getClan(tag);
+    const seasons = await getCapitalRaidSeasons(tag, 5);
+
+    return interaction.reply({
+      embeds: [capitalEmbed(analyzeCapital(clan, seasons))]
+    });
+  }
+
+  if (subcommand === "capital-snapshot") {
+    const tag = normalizeClanTag(
+      interaction.options.getString("tag", true)
+    );
+    const clan = await getClan(tag);
+    const seasons = await getCapitalRaidSeasons(tag, 5);
+    const analysis = analyzeCapital(clan, seasons);
+    const saved = await saveCapital(interaction.guildId, analysis);
+
+    return interaction.reply(
+      "Clan Capital snapshot saved as " + saved.id + "."
+    );
+  }
+
+  if (subcommand === "capital-history") {
+    const tag = normalizeClanTag(
+      interaction.options.getString("tag", true)
+    );
+    const history = await getCapitalHistory(
+      interaction.guildId,
+      tag,
+      10
+    );
+
+    return interaction.reply({
+      embeds: [capitalHistoryEmbed(history)]
+    });
+  }
+
+  if (subcommand === "clan-games") {
+    const season = interaction.options.getString("season", true);
+    const scores = await getScores(
+      interaction.guildId,
+      season
+    );
+
+    return interaction.reply({
+      embeds: [clanGamesEmbed(season, scores)]
+    });
+  }
+
+  if (subcommand === "clan-games-set") {
+    const season = interaction.options.getString("season", true);
+    const points = interaction.options.getInteger("points", true);
+
+    await setScore(
+      interaction.guildId,
+      season,
+      interaction.user.id,
+      interaction.user.username,
+      points
+    );
+
+    return interaction.reply(
+      "Clan Games score updated to " + points + " for season " + season + "."
+    );
+  }
+
+  if (subcommand === "clan-games-remove") {
+    const season = interaction.options.getString("season", true);
+    const removed = await removeScore(
+      interaction.guildId,
+      season,
+      interaction.user.id
+    );
+
+    return interaction.reply(
+      removed
+        ? "Your Clan Games score was removed for season " + season + "."
+        : "No tracked Clan Games score was found for season " + season + "."
+    );
   }
 
   if (subcommand === "cwl") {
