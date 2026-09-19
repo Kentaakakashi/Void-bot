@@ -41,6 +41,16 @@ const {
 } = require("../../coc/war");
 
 const {
+  getCwlAnalysis
+} = require("../../coc/cwl");
+
+const {
+  cwlOverviewEmbed,
+  cwlAnalysisEmbed,
+  cwlHistoryEmbed
+} = require("../../coc/formatCwl");
+
+const {
   saveSnapshot,
   getSnapshots,
   compareSnapshots
@@ -67,6 +77,11 @@ const {
   saveWar,
   getWarHistory
 } = require("../../database/repositories/wars");
+
+const {
+  saveCwl,
+  getCwlHistory
+} = require("../../database/repositories/cwl");
 
 function normalizeTag(value) {
   const tag = String(value || "").trim().toUpperCase();
@@ -239,6 +254,58 @@ const data = new SlashCommandBuilder()
     subcommand
       .setName("plan-latest")
       .setDescription("Show your latest saved progression plan.")
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("cwl")
+      .setDescription("Show current CWL group intelligence.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("cwl-analyze")
+      .setDescription("Analyze the current CWL season for a clan.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("cwl-snapshot")
+      .setDescription("Save the current CWL analysis.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("cwl-history")
+      .setDescription("Show saved CWL season history.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
   )
 
   .addSubcommand((subcommand) =>
@@ -494,6 +561,73 @@ async function execute(interaction) {
 
     return interaction.reply({
       embeds: [latestPlanEmbed(plan)]
+    });
+  }
+
+  if (subcommand === "cwl") {
+    const tag = normalizeTag(
+      interaction.options.getString("tag", true)
+    );
+    const analysis = await getCwlAnalysis(
+      tag,
+      getCurrentCwlGroup,
+      getCwlWar
+    );
+
+    return interaction.reply({
+      embeds: [cwlOverviewEmbed(analysis)]
+    });
+  }
+
+  if (subcommand === "cwl-analyze") {
+    const tag = normalizeTag(
+      interaction.options.getString("tag", true)
+    );
+    const analysis = await getCwlAnalysis(
+      tag,
+      getCurrentCwlGroup,
+      getCwlWar
+    );
+
+    return interaction.reply({
+      embeds: [cwlAnalysisEmbed(analysis)]
+    });
+  }
+
+  if (subcommand === "cwl-snapshot") {
+    const tag = normalizeTag(
+      interaction.options.getString("tag", true)
+    );
+    const analysis = await getCwlAnalysis(
+      tag,
+      getCurrentCwlGroup,
+      getCwlWar
+    );
+
+    const saved = await saveCwl(
+      interaction.guildId,
+      analysis
+    );
+
+    return interaction.reply(
+      "CWL intelligence snapshot saved as " +
+        saved.id +
+        "."
+    );
+  }
+
+  if (subcommand === "cwl-history") {
+    const tag = normalizeTag(
+      interaction.options.getString("tag", true)
+    );
+    const history = await getCwlHistory(
+      interaction.guildId,
+      tag,
+      10
+    );
+
+    return interaction.reply({
+      embeds: [cwlHistoryEmbed(history)]
     });
   }
 
