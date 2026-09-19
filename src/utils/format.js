@@ -1,1 +1,50 @@
-function splitMessage(t,max=1900){let s=String(t??"").trim(),o=[];while(s.length>max){let c=s.lastIndexOf("\n",max);if(c<max*.55)c=s.lastIndexOf(" ",max);if(c<max*.55)c=max;o.push(s.slice(0,c).trim());s=s.slice(c).trimStart();}if(s)o.push(s);return o;}function truncate(t,m){const s=String(t??"");return s.length<=m?s:s.slice(0,m-3)+"...";}module.exports={splitMessage,truncate};
+function truncate(text, maxLength) {
+  const value = String(text ?? "");
+
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
+}
+
+function splitMessage(text, maxLength = 1900) {
+  const value = String(text ?? "").trim();
+
+  if (!value) {
+    return [];
+  }
+
+  if (value.length <= maxLength) {
+    return [value];
+  }
+
+  const chunks = [];
+  let remaining = value;
+
+  while (remaining.length > maxLength) {
+    let cut = remaining.lastIndexOf("\n", maxLength);
+
+    if (cut < Math.floor(maxLength * 0.55)) {
+      cut = remaining.lastIndexOf(" ", maxLength);
+    }
+
+    if (cut < Math.floor(maxLength * 0.55)) {
+      cut = maxLength;
+    }
+
+    chunks.push(remaining.slice(0, cut).trim());
+    remaining = remaining.slice(cut).trimStart();
+  }
+
+  if (remaining) {
+    chunks.push(remaining);
+  }
+
+  return chunks;
+}
+
+module.exports = {
+  truncate,
+  splitMessage
+};
