@@ -71,9 +71,25 @@ function checkCommands() {
     const json = command.data.toJSON();
     assert(json.options.length <= 25, `${json.name} has ${json.options.length} top-level options; Discord allows at most 25.`);
     validateOptionNames(json.options, json.name);
+    validateRequiredOptionOrder(json.options, json.name);
   }
 }
 
+function validateRequiredOptionOrder(options, location) {
+  let optionalSeen = false;
+
+  for (const option of options || []) {
+    if (option.required) {
+      assert(!optionalSeen, `Required option '${option.name}' appears after an optional option in ${location}.`);
+    } else {
+      optionalSeen = true;
+    }
+
+    if (Array.isArray(option.options) && option.type !== 2) {
+      validateRequiredOptionOrder(option.options, `${location} ${option.name}`);
+    }
+  }
+}
 function validateOptionNames(options, location) {
   const names = new Set();
   for (const option of options || []) {
