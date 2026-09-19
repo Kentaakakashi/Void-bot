@@ -41,6 +41,21 @@ Phase 2 adds live Clash of Clans account intelligence:
 - `/coc clan`
 - `/coc war`
 
+## Phase 3 — Progression Intelligence
+
+Phase 3 adds persistent account progression tracking:
+
+- Progress completion estimates for heroes, troops, spells, and equipment
+- Incomplete upgrade lists
+- Persistent account snapshots in Firestore
+- Snapshot-to-snapshot progression comparison
+- `/coc progress`
+- `/coc snapshot`
+- `/coc history`
+- VØID AI access to live progression analysis
+
+Snapshots record the account state returned by the Clash of Clans API at the moment they are captured. They do not invent upgrade timers or unavailable building data.
+
 ## Future phases
 
 - Heroes, pets, equipment, buildings and research intelligence
