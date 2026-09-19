@@ -171,6 +171,85 @@ Each Discord user can maintain their own tracked Clan Games score for a season.
 - Personal command center
 - Web dashboard
 
+
+## Phase 8 — Smart Notifications
+
+VØID can proactively monitor a configured clan and notification channel.
+
+Supported events:
+- New war / preparation detected
+- Battle day started
+- War ended
+- Unused attacks near war end
+
+Commands:
+- /void notifications set
+- /void notifications show
+- /void notifications disable
+
+Notification configuration is stored per server in Firestore. Polling is configurable with NOTIFICATION_POLL_MS and defaults to 60000ms.
+
+## Phase 9 — Historical Analytics
+
+Planned:
+- Trophy progression
+- Donation progression
+- War performance
+- CWL performance
+- Account development trends
+- Upgrade completion trends
+- Goal completion
+- Activity trends
+
+## Phase 10 — Advanced AI Strategy
+
+Planned:
+- Combine current account state
+- Historical account state
+- Goals
+- War and CWL data
+- Clan activity
+- User preferences
+- Deeper strategy context
+
+## Phase 11 — Personal Command Center
+
+Planned:
+- Account
+- Progression
+- Goals
+- War
+- CWL
+- Clan activity
+- Notifications
+- AI
+- History
+
+## Phase 12 — Project Health & QA
+
+The old web-dashboard roadmap item has been replaced with a permanent project integrity phase.
+
+The repository now includes:
+- Whole-source JavaScript syntax checks
+- Relative require/import validation
+- Discord command schema checks
+- Required-before-optional option checks
+- Duplicate command/option detection
+- AI tool registry/handler consistency checks
+- Pure-logic regression fixtures
+- API field-mapping fixtures
+- War and CWL state-accounting fixtures
+
+Run:
+
+npm run check
+
+or:
+
+npm run audit
+
+The check is also run by GitHub Actions on pushes and pull requests.
+
 ## Deployment
 
 Use Node.js 24.17+ and start with:
