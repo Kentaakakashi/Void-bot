@@ -127,16 +127,28 @@ function checkPureLogic() {
   }, "#A");
   assert(prepWar.totals.attacksRemaining === 0, "Preparation war incorrectly exposes attack time as remaining attacks.");
 
+  const liveWar = war.analyzeWar({
+    state: "inWar",
+    attacksPerMember: 2,
+    clan: { tag: "#A", members: [{ tag: "#P", name: "Player", attacks: [] }] },
+    opponent: { tag: "#B", name: "Opponent", members: [] }
+  }, "#A");
+  assert(liveWar.totals.attacksRemaining === 2, "Battle-day war should expose unused attacks.");
+
   const inProgressCwl = cwl.analyzeCwlWar({
     warTag: "#WAR",
     war: {
       state: "inWar",
       teamSize: 1,
-      clan: { tag: "#A", name: "A", members: [] },
+      clan: {
+        tag: "#A",
+        name: "A",
+        members: [{ tag: "#P", name: "Player", attacks: [] }]
+      },
       opponent: { tag: "#B", name: "B", stars: 0, destructionPercentage: 0 }
     }
   }, "#A");
-  assert(inProgressCwl.totals.attacksRemaining === 0, "Empty in-progress CWL war should have zero remaining attacks in fixture.");
+  assert(inProgressCwl.totals.attacksRemaining === 1, "In-progress CWL war should expose one available attack for an unused member.");
   assert(cwl.realWarTags({ rounds: [{ warTags: ["#0", "#REAL", "#REAL"] }] }).length === 1, "CWL placeholder/deduplication logic failed.");
 
   const donations = activity.analyzeDonations(
@@ -155,6 +167,8 @@ function checkPureLogic() {
     },
     { items: [{ season: "2026-09", capitalTotalLoot: 1000, totalAttacks: 20, enemyDistrictsDestroyed: 3, offensiveReward: 100, defensiveReward: 50, members: [] }] }
   );
+  assert(capital.capitalHallLevel === 8, "Capital Hall field mapping failed.");
+  assert(capital.clanGoldSinkTotal === 12345, "Capital gold field mapping failed.");
   assert(capital.latestSeason.capitalTotalLoot === 1000, "Capital season field mapping failed.");
   assert(capital.topContributors[0].capitalContributions === 500, "Capital contribution tracking failed.");
 }
@@ -165,6 +179,16 @@ try {
   relativeRequiresExist(files);
   checkCommands();
   checkAiTools();
+
+  const cocSource = fs.readFileSync(
+    path.join(ROOT, "src", "commands", "coc", "index.js"),
+    "utf8"
+  );
+  assert(
+    !cocSource.includes("interaction.reply("),
+    "/coc command must defer and use editReply for network-backed commands."
+  );
+
   checkPureLogic();
   console.log(`VØID PROJECT CHECK PASSED • ${files.length} files inspected.`);
 } catch (error) {
