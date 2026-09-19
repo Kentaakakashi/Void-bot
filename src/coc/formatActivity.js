@@ -35,13 +35,18 @@ function capitalEmbed(analysis) {
       { name: "Capital League", value: analysis.capitalLeague?.name || String(analysis.capitalLeague?.id || "Unknown"), inline: true },
       { name: "Capital Points", value: String(analysis.clanCapitalPoints), inline: true },
       { name: "Latest Season", value: latest?.season || "Unknown", inline: true },
-      { name: "Loot", value: latest?.loot == null ? "Unavailable" : String(latest.loot), inline: true },
+      { name: "Capital Gold", value: String(analysis.clanGoldSinkTotal || 0), inline: true },
+      { name: "Capital Points", value: String(analysis.clanCapitalPoints || 0), inline: true },
+      { name: "Latest Loot", value: latest?.capitalTotalLoot == null ? "Unavailable" : String(latest.capitalTotalLoot), inline: true },
       { name: "Raid Medals", value: latest?.raidMedals == null ? "Unavailable" : String(latest.raidMedals), inline: true },
-      { name: "Attacks", value: latest?.attacks == null ? "Unavailable" : String(latest.attacks), inline: true },
-      { name: "Districts Destroyed", value: latest?.districtsDestroyed == null ? "Unavailable" : String(latest.districtsDestroyed), inline: true },
+      { name: "Raid Attacks", value: latest?.totalAttacks == null ? "Unavailable" : String(latest.totalAttacks), inline: true },
+      { name: "Districts Destroyed", value: latest?.enemyDistrictsDestroyed == null ? "Unavailable" : String(latest.enemyDistrictsDestroyed), inline: true },
+      { name: "Top Contributors", value: analysis.topContributors.slice(0, 8).map((member, index) =>
+        (index + 1) + ". **" + member.name + "** — " + member.capitalContributions
+      ).join("\n") || "No contribution data." },
       { name: "Recent Seasons", value: analysis.seasons.slice(0, 5).map((season) =>
         (season.season || "Unknown") + " — " +
-        (season.loot == null ? "loot unavailable" : season.loot)
+        (season.capitalTotalLoot == null ? "loot unavailable" : season.capitalTotalLoot)
       ).join("\n") || "No season data." }
     )
     .setFooter({ text: "VØID HELPER • Clan Capital Intelligence" });
