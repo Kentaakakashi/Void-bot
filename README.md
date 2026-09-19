@@ -179,15 +179,39 @@ Notification configuration is stored per server in Firestore. Polling is configu
 
 ## Phase 9 — Historical Analytics
 
-Planned:
-- Trophy progression
-- Donation progression
-- War performance
-- CWL performance
-- Account development trends
-- Upgrade completion trends
-- Goal completion
-- Activity trends
+Phase 9 turns VØID's saved records into trend reports instead of isolated snapshots.
+
+Added:
+- Trophy and best-trophy progression
+- Town Hall progression
+- War-star, attack-win, and defense-win progression
+- Donation progression from persistent donation snapshots
+- Upgrade event and level-gain tracking
+- Tracked item completion trends
+- Classic war performance history
+- CWL season performance history
+- Clan Capital season activity trends
+- Clan Games season totals
+- Goal completion analytics
+- Historical analytics available to VØID AI
+
+Commands:
+- /coc analytics player
+- /coc analytics war
+- /coc analytics cwl
+- /coc analytics activity
+- /coc analytics goals
+- /coc activity donation-snapshot
+- /coc planning goal-complete
+
+Historical data is based only on records saved by VØID. Player progression requires periodic /coc snapshot use; donations require periodic /coc activity donation-snapshot use; wars require /coc war-snapshot; CWL requires /coc cwl snapshot; Capital history comes from saved Capital snapshots; Clan Games history comes from the manual tracker.
+
+AI tools:
+- get_historical_player_analytics
+- get_historical_war_analytics
+- get_historical_cwl_analytics
+- get_historical_activity_analytics
+- get_goal_analytics
 
 ## Phase 10 — Advanced AI Strategy
 
