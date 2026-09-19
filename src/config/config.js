@@ -56,7 +56,12 @@ const config = {
   app: {
     timezone: process.env.BOT_TIMEZONE?.trim() || "Asia/Kolkata",
     logLevel: process.env.LOG_LEVEL?.trim() || "info",
-    environment: process.env.NODE_ENV?.trim() || "development"
+    environment: process.env.NODE_ENV?.trim() || "development",
+    notificationPollMs: numberFromEnv(
+      "NOTIFICATION_POLL_MS",
+      60000,
+      30000
+    )
   }
 };
 
