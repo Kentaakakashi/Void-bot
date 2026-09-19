@@ -146,6 +146,12 @@ async function pollGuild(client, guild) {
       });
       return;
     }
+
+    await setNotificationState(guild.id, {
+      warState: "inWar",
+      lastWar: state.lastWar
+    });
+    return;
   }
 
   await setNotificationState(guild.id, {
