@@ -57,13 +57,13 @@ Commands:
 - AI planning tools
 
 Commands:
-- /coc priorities
-- /coc readiness
-- /coc plan
-- /coc goals
-- /coc goal-add
-- /coc goal-remove
-- /coc plan-latest
+- /coc planning priorities
+- /coc planning readiness
+- /coc planning plan
+- /coc planning goals
+- /coc planning goal-add
+- /coc planning goal-remove
+- /coc planning plan-latest
 
 Priority scores are VØID heuristics, not official Clash of Clans recommendations.
 
@@ -101,10 +101,10 @@ Commands:
 - VØID AI CWL analysis
 
 Commands:
-- /coc cwl
-- /coc cwl-analyze
-- /coc cwl-snapshot
-- /coc cwl-history
+- /coc cwl overview
+- /coc cwl analyze
+- /coc cwl snapshot
+- /coc cwl history
 
 CWL war responses do not expose the classic-war attacksPerMember field, so CWL attack usage is handled separately.
 
@@ -124,7 +124,7 @@ Phase 7 adds clan activity intelligence.
 - VØID AI donation analysis
 
 Command:
-- /coc donations
+- /coc activity donations
 
 ### Clan Capital
 
@@ -138,9 +138,9 @@ Command:
 - VØID AI Capital analysis
 
 Commands:
-- /coc capital
-- /coc capital-snapshot
-- /coc capital-history
+- /coc activity capital
+- /coc activity capital-snapshot
+- /coc activity capital-history
 
 The public API provides the clan capital raid-season endpoint. VØID only displays Capital metrics when corresponding values are actually returned by the API.
 
@@ -149,9 +149,9 @@ The public API provides the clan capital raid-season endpoint. VØID only displa
 The public CoC API does not provide a Clan Games points endpoint. VØID therefore uses a separate Firestore tracker instead of inventing points.
 
 Commands:
-- /coc clan-games
-- /coc clan-games-set
-- /coc clan-games-remove
+- /coc activity clan-games
+- /coc activity clan-games-set
+- /coc activity clan-games-remove
 
 Each Discord user can maintain their own tracked Clan Games score for a season.
 
@@ -160,18 +160,6 @@ Each Discord user can maintain their own tracked Clan Games score for a season.
 - get_donation_intelligence
 - get_capital_intelligence
 - get_clan_games_leaderboard
-## Future phases
-
-- Clan Capital intelligence
-- Donations
-- Clan Games
-- Smart notifications
-- Historical analytics
-- Advanced AI tools
-- Personal command center
-- Web dashboard
-
-
 ## Phase 8 — Smart Notifications
 
 VØID can proactively monitor a configured clan and notification channel.
