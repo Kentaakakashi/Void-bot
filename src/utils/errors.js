@@ -1,0 +1,1 @@
+function getErrorMessage(e){return typeof e==="string"?e:e?.message||"Unknown error."}function publicErrorMessage(e){const m=getErrorMessage(e);return m.length>1800?m.slice(0,1797)+"...":m;}module.exports={getErrorMessage,publicErrorMessage};
