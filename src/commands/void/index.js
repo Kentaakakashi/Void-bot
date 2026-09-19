@@ -83,22 +83,24 @@ async function execute(interaction) {
   const group = interaction.options.getSubcommandGroup(false);
   const subcommand = interaction.options.getSubcommand();
 
+  await interaction.deferReply();
+
   if (group === "channel") {
     requireAdmin(interaction);
 
     if (subcommand === "set") {
       const channel = interaction.options.getChannel("channel", true);
       await setAiChannel(interaction.guildId, channel.id);
-      return interaction.reply({ embeds: [successEmbed("🤖 VØID CHANNEL CONFIGURED", `VØID will now respond to normal messages in ${channel}.`)] });
+      return interaction.editReply({ embeds: [successEmbed("🤖 VØID CHANNEL CONFIGURED", `VØID will now respond to normal messages in ${channel}.`)] });
     }
 
     if (subcommand === "show") {
       const settings = await getGuildSettings(interaction.guildId);
-      return interaction.reply({ embeds: [baseEmbed("🤖 VØID CHANNEL").setDescription(settings.aiChannelId ? `Current AI channel: <#${settings.aiChannelId}>` : "No AI channel is configured.")] });
+      return interaction.editReply({ embeds: [baseEmbed("🤖 VØID CHANNEL").setDescription(settings.aiChannelId ? `Current AI channel: <#${settings.aiChannelId}>` : "No AI channel is configured.")] });
     }
 
     await disableAiChannel(interaction.guildId);
-    return interaction.reply({ embeds: [successEmbed("🤖 VØID DISABLED", "The AI chat channel has been disabled.")] });
+    return interaction.editReply({ embeds: [successEmbed("🤖 VØID DISABLED", "The AI chat channel has been disabled.")] });
   }
 
   if (group === "notifications") {
@@ -118,25 +120,25 @@ async function execute(interaction) {
           missedAttacks: interaction.options.getBoolean("missed_attacks") ?? true
         }
       });
-      return interaction.reply({
+      return interaction.editReply({
         embeds: [successEmbed("🔔 SMART NOTIFICATIONS CONFIGURED", `Monitoring **${settings.clanTag}** in ${channel}.`)]
       });
     }
 
     if (subcommand === "show") {
       const settings = await getNotificationSettings(interaction.guildId);
-      return interaction.reply({
+      return interaction.editReply({
         embeds: [baseEmbed("🔔 VØID NOTIFICATIONS").setDescription(settings.enabled ? `Enabled\nChannel: <#${settings.channelId}>\nClan: ${settings.clanTag}` : "Smart notifications are disabled." )]});
     }
 
     await disableNotifications(interaction.guildId);
-    return interaction.reply({ embeds: [successEmbed("🔕 SMART NOTIFICATIONS DISABLED", "VØID will stop sending proactive Clash notifications.")] });
+    return interaction.editReply({ embeds: [successEmbed("🔕 SMART NOTIFICATIONS DISABLED", "VØID will stop sending proactive Clash notifications.")] });
   }
 
   if (subcommand === "status") {
     const settings = await getGuildSettings(interaction.guildId);
     const notifications = await getNotificationSettings(interaction.guildId);
-    return interaction.reply({
+    return interaction.editReply({
       embeds: [baseEmbed("🕳️ VØID STATUS").addFields(
         { name: "AI Channel", value: settings.aiEnabled && settings.aiChannelId ? `<#${settings.aiChannelId}>` : "Disabled", inline: true },
         { name: "AI Model", value: config.openai.model, inline: true },
@@ -149,7 +151,6 @@ async function execute(interaction) {
 
   if (subcommand === "ask") {
     const question = interaction.options.getString("question", true);
-    await interaction.deferReply();
     const fakeMessage = { guild: interaction.guild, author: interaction.user, content: question };
     const reply = await generateReply({ message: fakeMessage });
     const chunks = splitMessage(reply);
@@ -161,7 +162,7 @@ async function execute(interaction) {
 
   if (subcommand === "reset-chat") {
     await clearConversation(interaction.guildId, interaction.user.id);
-    return interaction.reply({ embeds: [successEmbed("🧹 CHAT HISTORY CLEARED", "Your stored VØID conversation history has been cleared.")] });
+    return interaction.editReply({ embeds: [successEmbed("🧹 CHAT HISTORY CLEARED", "Your stored VØID conversation history has been cleared.")] });
   }
 
   if (subcommand === "memory") {
@@ -169,13 +170,13 @@ async function execute(interaction) {
     if (action === "show") {
       const memory = await getUserMemory(interaction.guildId, interaction.user.id);
       const content = Object.keys(memory).length ? JSON.stringify(memory, null, 2) : "No saved memory for you yet.";
-      return interaction.reply({ embeds: [baseEmbed("🧠 VØID MEMORY").setDescription(content.slice(0, 3800))] });
+      return interaction.editReply({ embeds: [baseEmbed("🧠 VØID MEMORY").setDescription(content.slice(0, 3800))] });
     }
     await clearUserMemory(interaction.guildId, interaction.user.id);
-    return interaction.reply({ embeds: [successEmbed("🧠 MEMORY CLEARED", "Your stored VØID memory has been cleared.")] });
+    return interaction.editReply({ embeds: [successEmbed("🧠 MEMORY CLEARED", "Your stored VØID memory has been cleared.")] });
   }
 
-  return interaction.reply({ embeds: [errorEmbed("That VØID command is not implemented yet.")] });
+  return interaction.editReply({ embeds: [errorEmbed("That VØID command is not implemented yet.")] });
 }
 
 module.exports = { data, execute };
