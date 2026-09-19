@@ -193,8 +193,10 @@ function analyzeCwlWar(entry, clanTag) {
     preparationStartTime: war?.preparationStartTime || null,
     endTime: war?.endTime || null,
     totals: {
-      stars,
-      destruction: Number(destruction.toFixed(2)),
+      stars: Number(war?.clan?.stars || 0),
+      attackStars: stars,
+      destruction: Number(war?.clan?.destructionPercentage || 0),
+      attackDestructionSum: Number(destruction.toFixed(2)),
       threeStars,
       attacksUsed,
       possibleAttacks,
