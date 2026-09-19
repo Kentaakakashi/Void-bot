@@ -13,6 +13,7 @@ const {
   newWarEmbed,
   warStartedEmbed,
   warEndedEmbed,
+  warEndedFromState,
   missedAttacksEmbed
 } = require("./format");
 
@@ -56,6 +57,9 @@ async function pollGuild(client, guild) {
       initialized: true,
       warId: currentId,
       warState: current?.state || "notInWar",
+      lastWar: current && current.state !== "notInWar"
+        ? analyzeWar(current, settings.clanTag)
+        : null,
       missedAlertWarId: null
     });
     return;
@@ -111,9 +115,37 @@ async function pollGuild(client, guild) {
 
     await setNotificationState(guild.id, {
       warId: currentId,
-      warState: current.state
+      warState: current.state,
+      lastWar: analysis
     });
     return;
+  }
+
+  if (
+    settings.events.warEnd &&
+    state.warState === "inWar" &&
+    state.lastWar
+  ) {
+    const sent = await send(
+      client,
+      settings.channelId,
+      warEndedFromState({
+        clanName: state.lastWar.clanName,
+        opponentName: state.lastWar.opponentName,
+        clanStars: state.lastWar.totals?.clanStars,
+        clanDestruction: state.lastWar.totals?.clanDestruction,
+        opponentStars: state.lastWar.totals?.opponentStars,
+        opponentDestruction: state.lastWar.totals?.opponentDestruction
+      })
+    );
+
+    if (sent) {
+      await setNotificationState(guild.id, {
+        warState: "notInWar",
+        lastWar: null
+      });
+      return;
+    }
   }
 
   await setNotificationState(guild.id, {
