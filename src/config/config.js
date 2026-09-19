@@ -41,8 +41,8 @@ const config = {
   },
 
   openai: {
-    apiKey: required("OPENAI_API_KEY"),
-    model: process.env.OPENAI_MODEL?.trim() || "gpt-5.6",
+    apiKey: required("GEMINI_API_KEY"),
+    model: process.env.GEMINI_MODEL?.trim() || "gemini-3.8-flash",
     maxHistory: numberFromEnv("AI_MAX_HISTORY", 20),
     memoryLimit: numberFromEnv("AI_MEMORY_LIMIT", 50)
   },
