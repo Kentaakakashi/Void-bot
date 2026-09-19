@@ -1,1 +1,8 @@
-require("dotenv").config(); const {start}=require("./src/core/startup"); start().catch(e=>{console.error("[FATAL] VØID HELPER failed to start:",e);process.exitCode=1;});
+require("dotenv").config();
+
+const { start } = require("./src/core/startup");
+
+start().catch((error) => {
+  console.error("[FATAL] VØID HELPER failed to start:", error);
+  process.exitCode = 1;
+});
