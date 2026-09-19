@@ -59,6 +59,21 @@ async function getClan(clanTag) {
   return request(`/clans/${encodeTag(clanTag)}`);
 }
 
+async function getClanMembers(clanTag, query = "") {
+  const suffix = query ? "?" + query : "";
+  return request(
+    `/clans/${encodeTag(clanTag)}/members${suffix}`
+  );
+}
+
+async function getCapitalRaidSeasons(clanTag, limit = 5) {
+  const safeLimit = Math.min(Math.max(Number(limit) || 5, 1), 10);
+
+  return request(
+    `/clans/${encodeTag(clanTag)}/capitalraidseasons?limit=${safeLimit}`
+  );
+}
+
 async function getCurrentWar(clanTag) {
   return request(`/clans/${encodeTag(clanTag)}/currentwar`);
 }
@@ -85,6 +100,8 @@ module.exports = {
   request,
   getPlayer,
   getClan,
+  getClanMembers,
+  getCapitalRaidSeasons,
   getCurrentWar,
   getCurrentCwlGroup,
   getCwlWar
