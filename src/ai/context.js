@@ -1,0 +1,1 @@
+function buildUserContext({message,memory}){return [`Discord server: ${message.guild?.name||"Unknown"}`,`Discord user: ${message.author?.username||"Unknown"}`,`User memory: ${JSON.stringify(memory||{})}`].join("\n");}module.exports={buildUserContext};
