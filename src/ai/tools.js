@@ -1,1 +1,7 @@
-function getAvailableTools(){return [];}module.exports={getAvailableTools};
+function getAvailableTools() {
+  return [];
+}
+
+module.exports = {
+  getAvailableTools
+};
