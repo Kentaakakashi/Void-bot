@@ -1,1 +1,40 @@
-const fs=require("fs"),path=require("path");function walk(d){return fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>{const p=path.join(d,e.name);return e.isDirectory()?walk(p):e.isFile()&&e.name.endsWith(".js")?[p]:[]});}function loadCommands(d){const m=new Map();for(const f of walk(d)){delete require.cache[require.resolve(f)];const c=require(f);if(c?.data?.name&&typeof c.execute==="function")m.set(c.data.name,c);}return m;}module.exports={loadCommands};
+const fs = require("fs");
+const path = require("path");
+
+function walk(directory) {
+  const files = [];
+
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const fullPath = path.join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...walk(fullPath));
+    } else if (entry.isFile() && entry.name.endsWith(".js")) {
+      files.push(fullPath);
+    }
+  }
+
+  return files;
+}
+
+function loadCommands(commandsDirectory) {
+  const commands = new Map();
+
+  for (const filePath of walk(commandsDirectory)) {
+    delete require.cache[require.resolve(filePath)];
+
+    const command = require(filePath);
+
+    if (!command?.data?.name || typeof command.execute !== "function") {
+      continue;
+    }
+
+    commands.set(command.data.name, command);
+  }
+
+  return commands;
+}
+
+module.exports = {
+  loadCommands
+};
