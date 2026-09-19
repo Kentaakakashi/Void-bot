@@ -190,9 +190,11 @@ function analyzeWar(war, clanTag) {
       attacksUsed: ownAttacks.length,
       attacksRemaining,
       possibleAttacks,
-      stars: totalStars,
+      stars: Number(war.clan?.stars || 0),
+      attackStars: totalStars,
       threeStars,
-      totalDestruction: Number(totalDestruction.toFixed(2)),
+      totalDestruction: Number(war.clan?.destructionPercentage || 0),
+      attackDestructionSum: Number(totalDestruction.toFixed(2)),
       averageDestruction: ownAttacks.length
         ? Number((totalDestruction / ownAttacks.length).toFixed(2))
         : 0,
