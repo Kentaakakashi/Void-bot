@@ -50,6 +50,18 @@ function getAvailableTools() {
     },
     {
       type: "function",
+      name: "get_account_progress",
+      description:
+        "Analyze the linked Clash of Clans account's current progression across heroes, troops, spells, and equipment.",
+      parameters: {
+        type: "object",
+        properties: {},
+        additionalProperties: false
+      },
+      strict: true
+    },
+    {
+      type: "function",
       name: "get_current_war",
       description:
         "Get the current war state for a Clash of Clans clan.",
