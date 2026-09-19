@@ -1,0 +1,1 @@
+const r=require("../database/repositories/memory");module.exports={loadMemory:r.getUserMemory,saveMemory:r.setUserMemory,clearMemory:r.clearUserMemory};
