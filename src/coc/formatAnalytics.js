@@ -333,12 +333,10 @@ function activityAnalyticsEmbed(analysis, clanTag) {
           donation.snapshotCount +
           " snapshot(s) • " +
           signed(donation.delta) +
-          " donations change
-" +
+          " donations change\n" +
           "Latest ratio: " +
           donation.latestRatio +
-          "
-Top donor in latest snapshot: " +
+          "\nTop donor in latest snapshot: " +
           (donation.latestTopDonor || "—"),
         inline: false
       },
@@ -363,8 +361,7 @@ Latest season: " +
           games.seasons +
           " tracked season(s) • " +
           games.totalTrackedPoints +
-          " total tracked points
-" +
+          " total tracked points\n" +
           "Latest: " +
           (games.latest
             ? games.latest.season +
