@@ -117,9 +117,9 @@ const data = new SlashCommandBuilder()
       .addSubcommand((subcommand) =>
         subcommand.setName("goal-add").setDescription("Add a persistent progression goal.")
           .addStringOption((option) => option.setName("name").setDescription("Short goal name.").setRequired(true).setMaxLength(100))
-          .addStringOption((option) => option.setName("description").setDescription("Optional goal details.").setRequired(false).setMaxLength(500))
           .addStringOption((option) => option.setName("focus").setDescription("Goal focus.").setRequired(true)
             .addChoices({ name: "General", value: "general" }, { name: "War", value: "war" }, { name: "Trophy", value: "trophy" }))
+          .addStringOption((option) => option.setName("description").setDescription("Optional goal details.").setRequired(false).setMaxLength(500))
       )
       .addSubcommand((subcommand) =>
         subcommand.setName("goal-remove").setDescription("Remove a persistent progression goal.")
