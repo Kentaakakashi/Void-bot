@@ -3,6 +3,11 @@ const { getLinkedAccount } = require("../database/repositories/cocAccounts");
 const { buildProgressReport, findIncomplete } = require("../coc/progression");
 const { buildPriorities, buildPlan } = require("../coc/planner");
 const { analyzeWar } = require("../coc/war");
+const {
+  analyzeDonations,
+  analyzeCapital,
+  normalizeClanTag
+} = require("../coc/clanActivity");
 const { getCwlAnalysis } = require("../coc/cwl");
 const {
   getCurrentCwlGroup,
@@ -70,6 +75,27 @@ async function executeTool(name, argumentsJson, context) {
       goalId: args.goal_id,
       removed: await removeGoal(context.guildId, context.userId, args.goal_id)
     };
+  }
+
+  if (name === "get_donation_intelligence") {
+    const clanTag = normalizeClanTag(args.clan_tag);
+    const clan = await getClan(clanTag);
+    const members = await require("../coc/api").getClanMembers(clanTag);
+    return analyzeDonations(clan, members);
+  }
+
+  if (name === "get_capital_intelligence") {
+    const clanTag = normalizeClanTag(args.clan_tag);
+    const clan = await getClan(clanTag);
+    const seasons = await require("../coc/api").getCapitalRaidSeasons(clanTag, 5);
+    return analyzeCapital(clan, seasons);
+  }
+
+  if (name === "get_clan_games_leaderboard") {
+    return require("../database/repositories/clanGames").getScores(
+      context.guildId,
+      args.season
+    );
   }
 
   if (name === "get_war_analysis") {
