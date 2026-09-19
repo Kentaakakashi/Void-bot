@@ -127,7 +127,11 @@ function analyzeCwlWar(entry, clanTag) {
   ).length;
 
   const attacksUsed = attacks.length;
+  const battleDay = war?.state === "inWar";
   const possibleAttacks = members.length * CWL_ATTACKS_PER_MEMBER;
+  const attacksRemaining = battleDay
+    ? Math.max(possibleAttacks - attacksUsed, 0)
+    : 0;
 
   const memberPerformance = members
     .map((member) => {
@@ -152,10 +156,12 @@ function analyzeCwlWar(entry, clanTag) {
         mapPosition: Number(member?.mapPosition || 0),
         townHallLevel: Number(member?.townhallLevel || 0),
         attacksUsed: memberAttacks.length,
-        attacksRemaining: Math.max(
-          CWL_ATTACKS_PER_MEMBER - memberAttacks.length,
-          0
-        ),
+        attacksRemaining: battleDay
+          ? Math.max(
+              CWL_ATTACKS_PER_MEMBER - memberAttacks.length,
+              0
+            )
+          : 0,
         stars: memberStars,
         destruction: Number(memberDestruction.toFixed(2)),
         averageStars: memberAttacks.length
@@ -192,10 +198,7 @@ function analyzeCwlWar(entry, clanTag) {
       threeStars,
       attacksUsed,
       possibleAttacks,
-      attacksRemaining: Math.max(
-        possibleAttacks - attacksUsed,
-        0
-      ),
+      attacksRemaining,
       opponentStars: Number(war?.opponent?.stars || 0),
       opponentDestruction: Number(
         war?.opponent?.destructionPercentage || 0
@@ -216,6 +219,10 @@ function analyzeCwlWar(entry, clanTag) {
 }
 
 function classifyResult(war) {
+  if (war.state !== "warEnded") {
+    return "inProgress";
+  }
+
   if (
     war.totals.clanStars > war.totals.opponentStars ||
     (
@@ -295,6 +302,9 @@ function analyzeCwlGroup(group, wars, clanTag) {
   const wins = analyzedWars.filter((war) => war.result === "win").length;
   const ties = analyzedWars.filter((war) => war.result === "tie").length;
   const losses = analyzedWars.filter((war) => war.result === "loss").length;
+  const inProgress = analyzedWars.filter(
+    (war) => war.result === "inProgress"
+  ).length;
 
   const roster = (group?.clans || []).find(
     (clan) => clan?.tag?.toUpperCase() === normalized
@@ -330,7 +340,11 @@ function analyzeCwlGroup(group, wars, clanTag) {
     })),
     rounds: analyzedWars,
     summary: {
-      roundsPlayed: analyzedWars.length,
+      roundsFetched: analyzedWars.length,
+      roundsCompleted: analyzedWars.filter(
+        (war) => war.result !== "inProgress"
+      ).length,
+      inProgress,
       wins,
       ties,
       losses,
@@ -374,7 +388,11 @@ async function getCwlAnalysis(clanTag, getCurrentCwlGroup, getCwlWar) {
   const normalized = normalizeTag(clanTag);
   const group = await getCurrentCwlGroup(normalized);
 
-  if (!group || group.state === "notInWar") {
+  if (
+    !group ||
+    group.state === "notInWar" ||
+    group.state === "groupNotFound"
+  ) {
     return {
       state: "notInWar",
       season: group?.season || null,
