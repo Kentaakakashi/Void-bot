@@ -267,11 +267,7 @@ async function execute(interaction) {
 
       const content =
         Object.keys(memory).length > 0
-          ? [
-              "\`\`\`json",
-              JSON.stringify(memory, null, 2).slice(0, 1400),
-              "\`\`\`"
-            ].join("\n")
+          ? JSON.stringify(memory, null, 2)
           : "No saved memory for you yet.";
 
       return interaction.reply({
