@@ -1,1 +1,52 @@
-const {getDatabase}=require("../firestore");const ref=id=>getDatabase().collection("guilds").doc(id);async function getGuildSettings(id){const s=await ref(id).get();return s.exists?s.data()||{}:{}}async function updateGuildSettings(id,c){await ref(id).set({...c,updatedAt:new Date().toISOString()},{merge:true});return getGuildSettings(id);}async function setAiChannel(id,c){return updateGuildSettings(id,{aiChannelId:c,aiEnabled:true});}async function disableAiChannel(id){return updateGuildSettings(id,{aiChannelId:null,aiEnabled:false});}module.exports={getGuildSettings,updateGuildSettings,setAiChannel,disableAiChannel};
+const {
+  getDatabase
+} = require("../firestore");
+
+function guildRef(guildId) {
+  return getDatabase()
+    .collection("guilds")
+    .doc(guildId);
+}
+
+async function getGuildSettings(guildId) {
+  const snapshot = await guildRef(guildId).get();
+
+  if (!snapshot.exists) {
+    return {};
+  }
+
+  return snapshot.data() || {};
+}
+
+async function updateGuildSettings(guildId, changes) {
+  await guildRef(guildId).set(
+    {
+      ...changes,
+      updatedAt: new Date().toISOString()
+    },
+    { merge: true }
+  );
+
+  return getGuildSettings(guildId);
+}
+
+async function setAiChannel(guildId, channelId) {
+  return updateGuildSettings(guildId, {
+    aiChannelId: channelId,
+    aiEnabled: true
+  });
+}
+
+async function disableAiChannel(guildId) {
+  return updateGuildSettings(guildId, {
+    aiChannelId: null,
+    aiEnabled: false
+  });
+}
+
+module.exports = {
+  getGuildSettings,
+  updateGuildSettings,
+  setAiChannel,
+  disableAiChannel
+};
