@@ -1,0 +1,1 @@
+function isImageAttachment(a){if(!a)return false;const t=String(a.contentType||"").toLowerCase();return t.startsWith("image/")||/\.(png|jpe?g|webp|gif)$/i.test(String(a.name||""));}module.exports={isImageAttachment};
