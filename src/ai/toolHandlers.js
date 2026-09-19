@@ -3,6 +3,11 @@ const { getLinkedAccount } = require("../database/repositories/cocAccounts");
 const { buildProgressReport, findIncomplete } = require("../coc/progression");
 const { buildPriorities, buildPlan } = require("../coc/planner");
 const { analyzeWar } = require("../coc/war");
+const { getCwlAnalysis } = require("../coc/cwl");
+const {
+  getCurrentCwlGroup,
+  getCwlWar
+} = require("../coc/api");
 const { createGoal, getGoals, removeGoal } = require("../database/repositories/goals");
 const { savePlan } = require("../database/repositories/plans");
 
@@ -71,6 +76,14 @@ async function executeTool(name, argumentsJson, context) {
     const clanTag = normalizeTag(args.clan_tag);
     const war = await getCurrentWar(clanTag);
     return analyzeWar(war, clanTag);
+  }
+
+  if (name === "get_cwl_analysis") {
+    return getCwlAnalysis(
+      normalizeTag(args.clan_tag),
+      getCurrentCwlGroup,
+      getCwlWar
+    );
   }
 
   if (name === "get_account_plan") {
