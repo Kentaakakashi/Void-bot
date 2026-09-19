@@ -83,11 +83,13 @@ async function execute(interaction) {
   const group = interaction.options.getSubcommandGroup(false);
   const subcommand = interaction.options.getSubcommand();
 
+  if (group === "channel" || group === "notifications") {
+    requireAdmin(interaction);
+  }
+
   await interaction.deferReply();
 
   if (group === "channel") {
-    requireAdmin(interaction);
-
     if (subcommand === "set") {
       const channel = interaction.options.getChannel("channel", true);
       await setAiChannel(interaction.guildId, channel.id);
@@ -104,8 +106,6 @@ async function execute(interaction) {
   }
 
   if (group === "notifications") {
-    requireAdmin(interaction);
-
     if (subcommand === "set") {
       const channel = interaction.options.getChannel("channel", true);
       const clanTag = interaction.options.getString("clan_tag", true).trim().toUpperCase();
