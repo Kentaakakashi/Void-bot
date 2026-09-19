@@ -63,9 +63,29 @@ async function getCurrentWar(clanTag) {
   return request(`/clans/${encodeTag(clanTag)}/currentwar`);
 }
 
+async function getCurrentCwlGroup(clanTag) {
+  return request(
+    `/clans/${encodeTag(clanTag)}/currentwar/leaguegroup`
+  );
+}
+
+async function getCwlWar(warTag) {
+  const normalized = String(warTag || "").trim().toUpperCase();
+
+  if (!normalized.startsWith("#")) {
+    throw new Error("A CWL war tag must start with #.");
+  }
+
+  return request(
+    `/clanwarleagues/wars/${encodeURIComponent(normalized)}`
+  );
+}
+
 module.exports = {
   request,
   getPlayer,
   getClan,
-  getCurrentWar
+  getCurrentWar,
+  getCurrentCwlGroup,
+  getCwlWar
 };
