@@ -77,6 +77,25 @@ function untouchedLines(members, limit = 10) {
     .join("\n");
 }
 
+function attackLines(history, limit = 10) {
+  return history
+    .slice(-limit)
+    .reverse()
+    .map(
+      (attack) =>
+        "**" +
+        attack.attackerName +
+        "** → **" +
+        attack.defenderName +
+        "** — " +
+        attack.stars +
+        "★ / " +
+        attack.destructionPercentage +
+        "%"
+    )
+    .join("\n");
+}
+
 function warAnalysisEmbed(analysis) {
   if (analysis.state === "notInWar") {
     return new EmbedBuilder()
@@ -141,6 +160,11 @@ function warAnalysisEmbed(analysis) {
       {
         name: "Unused Attacks",
         value: missedLines(analysis.missedAttacks) || "None detected.",
+        inline: false
+      },
+      {
+        name: "Recent Attacks",
+        value: attackLines(analysis.attackHistory) || "No attacks recorded yet.",
         inline: false
       },
       {
