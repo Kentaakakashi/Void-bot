@@ -1,1 +1,45 @@
-const levels={debug:10,info:20,warn:30,error:40},configured=levels[String(process.env.LOG_LEVEL||"info").toLowerCase()]??20;function write(l,m,x){if(levels[l]<configured)return;const s=`[${new Date().toISOString()}] [${l.toUpperCase()}] ${m}${x===undefined?"":" "+JSON.stringify(x)}`;l==="error"?console.error(s):l==="warn"?console.warn(s):console.log(s);}module.exports={debug:(m,x)=>write("debug",m,x),info:(m,x)=>write("info",m,x),warn:(m,x)=>write("warn",m,x),error:(m,x)=>write("error",m,x)};
+const LEVELS = {
+  debug: 10,
+  info: 20,
+  warn: 30,
+  error: 40
+};
+
+const configuredLevel =
+  LEVELS[String(process.env.LOG_LEVEL || "info").toLowerCase()] ??
+  LEVELS.info;
+
+function safeStringify(value) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "[unserializable]";
+  }
+}
+
+function write(level, message, meta) {
+  if (LEVELS[level] < configuredLevel) {
+    return;
+  }
+
+  const line =
+    `[${new Date().toISOString()}] ` +
+    `[${level.toUpperCase()}] ` +
+    `${message}` +
+    (meta === undefined ? "" : ` ${safeStringify(meta)}`);
+
+  if (level === "error") {
+    console.error(line);
+  } else if (level === "warn") {
+    console.warn(line);
+  } else {
+    console.log(line);
+  }
+}
+
+module.exports = {
+  debug: (message, meta) => write("debug", message, meta),
+  info: (message, meta) => write("info", message, meta),
+  warn: (message, meta) => write("warn", message, meta),
+  error: (message, meta) => write("error", message, meta)
+};
