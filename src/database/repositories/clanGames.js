@@ -14,13 +14,29 @@ function seasonDocId(season) {
 }
 
 async function setScore(guildId, season, userId, memberName, points) {
-  const ref = gamesRef(guildId)
-    .doc(seasonDocId(season))
+  const seasonRef = gamesRef(guildId).doc(seasonDocId(season));
+  await seasonRef.set(
+    {
+      season: String(season || "current"),
+      updatedAt: new Date().toISOString()
+    },
+    { merge: true }
+  );
+
+  const ref = seasonRef
     .collection("members")
     .doc(userId);
 
   const existing = await ref.get();
   const now = new Date().toISOString();
+
+  await seasonRef.set(
+    {
+      season: String(season || "current"),
+      updatedAt: now
+    },
+    { merge: true }
+  );
 
   const data = {
     userId,
