@@ -101,6 +101,24 @@ function getAvailableTools() {
       },
       strict: true
     },
+,
+    {
+      type: "function",
+      name: "get_war_analysis",
+      description: "Analyze the current Clash of Clans war, including attacks, unused attacks, stars, destruction, member performance, cleanup targets, and untouched opponent bases.",
+      parameters: {
+        type: "object",
+        properties: {
+          clan_tag: {
+            type: "string",
+            description: "Clash of Clans clan tag including #."
+          }
+        },
+        required: ["clan_tag"],
+        additionalProperties: false
+      },
+      strict: true
+    }
     {
       type: "function",
       name: "get_current_war",
