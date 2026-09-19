@@ -1,4 +1,4 @@
-const { buildProgressReport, findIncomplete } = require("./progression");
+const { buildProgressReport } = require("./progression");
 
 const FOCUS_LABELS = {
   general: "General Progression",
@@ -14,16 +14,20 @@ const FOCUS_WEIGHTS = {
 
 function groupsFor(player) {
   return {
-    heroes: player.heroes || [],
-    troops: player.troops || [],
-    spells: player.spells || [],
-    equipment: player.heroEquipment || player.equipment || []
+    heroes: Array.isArray(player?.heroes) ? player.heroes : [],
+    troops: Array.isArray(player?.troops) ? player.troops : [],
+    spells: Array.isArray(player?.spells) ? player.spells : [],
+    equipment: Array.isArray(player?.heroEquipment)
+      ? player.heroEquipment
+      : Array.isArray(player?.equipment)
+        ? player.equipment
+        : []
   };
 }
 
 function itemGap(item) {
-  const level = Number(item.level);
-  const max = Number(item.maxLevel);
+  const level = Number(item?.level);
+  const max = Number(item?.maxLevel);
 
   if (!Number.isFinite(level) || !Number.isFinite(max) || max <= level) {
     return 0;
@@ -63,7 +67,7 @@ function buildPriorities(player, focus = "general") {
   return {
     focus: normalizedFocus,
     focusLabel: FOCUS_LABELS[normalizedFocus],
-    townHall: Number(player.townHallLevel || 0),
+    townHall: Number(player?.townHallLevel || 0),
     priorities: priorities.slice(0, 15),
     trackedItems: priorities.length,
     progress: buildProgressReport(player)
@@ -73,29 +77,48 @@ function buildPriorities(player, focus = "general") {
 function buildReadiness(player) {
   const groups = groupsFor(player);
   const incomplete = [];
+  let trackedItems = 0;
+  let invalidItems = 0;
 
   for (const [category, items] of Object.entries(groups)) {
     for (const item of items) {
-      if (itemGap(item) > 0) {
+      trackedItems += 1;
+
+      const level = Number(item?.level);
+      const maxLevel = Number(item?.maxLevel);
+
+      if (!Number.isFinite(level) || !Number.isFinite(maxLevel) || maxLevel <= 0) {
+        invalidItems += 1;
+        continue;
+      }
+
+      if (level < maxLevel) {
         incomplete.push({
           category,
           name: item.name || "Unknown item",
-          level: Number(item.level || 0),
-          maxLevel: Number(item.maxLevel || 0),
-          levelsRemaining: itemGap(item)
+          level,
+          maxLevel,
+          levelsRemaining: maxLevel - level
         });
       }
     }
   }
 
-  const reliableData = incomplete.every(
-    (item) => item.maxLevel > 0
+  const allCategoriesHaveData = Object.values(groups).every(
+    (items) => items.length > 0
   );
 
+  const reliableData =
+    trackedItems > 0 &&
+    invalidItems === 0 &&
+    allCategoriesHaveData;
+
   return {
-    townHall: Number(player.townHallLevel || 0),
+    townHall: Number(player?.townHallLevel || 0),
     ready: reliableData && incomplete.length === 0,
     reliableMaxLevelData: reliableData,
+    trackedItems,
+    invalidItems,
     incompleteCount: incomplete.length,
     incomplete: incomplete.slice(0, 30)
   };
