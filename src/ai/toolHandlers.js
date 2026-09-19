@@ -15,6 +15,25 @@ const {
 } = require("../coc/api");
 const { createGoal, getGoals, removeGoal } = require("../database/repositories/goals");
 const { savePlan } = require("../database/repositories/plans");
+const {
+  analyzePlayerHistory,
+  analyzeWarHistory,
+  analyzeCwlHistory,
+  analyzeActivityHistory,
+  goalAnalytics
+} = require("../coc/analytics");
+const { getSnapshots } = require("../database/repositories/progression");
+const { getWarHistory } = require("../database/repositories/wars");
+const { getCwlHistory } = require("../database/repositories/cwl");
+const {
+  getDonationHistory
+} = require("../database/repositories/donations");
+const {
+  getCapitalHistory
+} = require("../database/repositories/capital");
+const {
+  getSeasonHistory
+} = require("../database/repositories/clanGames");
 
 function normalizeTag(value) {
   const tag = String(value || "").trim().toUpperCase();
@@ -110,6 +129,65 @@ async function executeTool(name, argumentsJson, context) {
       getCurrentCwlGroup,
       getCwlWar
     );
+  }
+
+  if (name === "get_historical_player_analytics") {
+    const snapshots = await getSnapshots(
+      context.guildId,
+      context.userId,
+      25
+    );
+    const goals = await getGoals(
+      context.guildId,
+      context.userId,
+      true
+    );
+
+    return analyzePlayerHistory(snapshots, goals);
+  }
+
+  if (name === "get_historical_war_analytics") {
+    const clanTag = normalizeTag(args.clan_tag);
+    const history = await getWarHistory(
+      context.guildId,
+      clanTag,
+      25
+    );
+    return analyzeWarHistory(history);
+  }
+
+  if (name === "get_historical_cwl_analytics") {
+    const clanTag = normalizeTag(args.clan_tag);
+    const history = await getCwlHistory(
+      context.guildId,
+      clanTag,
+      25
+    );
+    return analyzeCwlHistory(history);
+  }
+
+  if (name === "get_historical_activity_analytics") {
+    const clanTag = normalizeTag(args.clan_tag);
+    const [donations, capital, clanGames] = await Promise.all([
+      getDonationHistory(context.guildId, clanTag, 25),
+      getCapitalHistory(context.guildId, clanTag, 25),
+      getSeasonHistory(context.guildId, 10)
+    ]);
+
+    return analyzeActivityHistory({
+      donations,
+      capital,
+      clanGames
+    });
+  }
+
+  if (name === "get_goal_analytics") {
+    const goals = await getGoals(
+      context.guildId,
+      context.userId,
+      true
+    );
+    return goalAnalytics(goals);
   }
 
   if (name === "get_account_plan") {
