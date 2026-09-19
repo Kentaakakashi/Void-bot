@@ -17,9 +17,9 @@ const {
 const { loadMemory } = require("./memory");
 const { getAvailableTools } = require("./tools");
 const { executeTool } = require("./toolHandlers");
+const config = require("../config/config");
 
 const MAX_TOOL_ROUNDS = 4;
-const GEMINI_MODEL = "gemini-3.8-flash";
 
 function buildMessageContent(content, imageUrls = []) {
   const parts = [];
@@ -130,7 +130,7 @@ async function generateReply({
     round += 1
   ) {
     response = await openai.chat.completions.create({
-      model: GEMINI_MODEL,
+      model: config.openai.model,
       messages,
       tools: toChatTools(getAvailableTools())
     });
