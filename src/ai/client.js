@@ -1,1 +1,9 @@
-const OpenAI=require("openai"),config=require("../config/config");module.exports=new OpenAI({apiKey:config.openai.apiKey});
+const OpenAI = require("openai");
+
+const config = require("../config/config");
+
+const openai = new OpenAI({
+  apiKey: config.openai.apiKey
+});
+
+module.exports = openai;
