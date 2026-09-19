@@ -268,7 +268,6 @@ function analyzeCwlGroup(group, wars, clanTag) {
         attacksRemaining: 0,
         stars: 0,
         destruction: 0,
-        threeStarLikeAttacks: 0
       };
 
       current.warsParticipated += 1;
