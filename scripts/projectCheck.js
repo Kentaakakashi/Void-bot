@@ -50,7 +50,7 @@ function checkCommands() {
   process.env.DISCORD_TOKEN ||= "audit-placeholder";
   process.env.DISCORD_CLIENT_ID ||= "123456789012345678";
   process.env.DISCORD_GUILD_ID ||= "123456789012345678";
-  process.env.OPENAI_API_KEY ||= "audit-placeholder";
+  process.env.GEMINI_API_KEY ||= "audit-placeholder";
   process.env.FIREBASE_PROJECT_ID ||= "audit-project";
   process.env.FIREBASE_CLIENT_EMAIL ||= "audit@example.com";
   process.env.FIREBASE_PRIVATE_KEY ||= "-----BEGIN PRIVATE KEY-----\\naudit\\n-----END PRIVATE KEY-----";
@@ -138,6 +138,7 @@ function checkPureLogic() {
   const war = require(path.join(ROOT, "src", "coc", "war.js"));
   const cwl = require(path.join(ROOT, "src", "coc", "cwl.js"));
   const activity = require(path.join(ROOT, "src", "coc", "clanActivity.js"));
+  const analytics = require(path.join(ROOT, "src", "coc", "analytics.js"));
 
   const emptyReadiness = planner.buildReadiness({
     heroes: [],
@@ -200,6 +201,67 @@ function checkPureLogic() {
   assert(capital.clanGoldSinkTotal === 12345, "Capital gold field mapping failed.");
   assert(capital.latestSeason.capitalTotalLoot === 1000, "Capital season field mapping failed.");
   assert(capital.topContributors[0].capitalContributions === 500, "Capital contribution tracking failed.");
+
+  const previousSnapshot = {
+    capturedAt: "2026-09-01T00:00:00.000Z",
+    townHallLevel: 15,
+    trophies: 1000,
+    bestTrophies: 1200,
+    warStars: 100,
+    attackWins: 50,
+    defenseWins: 20,
+    donations: 200,
+    donationsReceived: 100,
+    heroes: [{ name: "Hero", level: 10, maxLevel: 20 }],
+    troops: [{ name: "Troop", level: 10, maxLevel: 20 }],
+    spells: [{ name: "Spell", level: 10, maxLevel: 20 }],
+    equipment: [{ name: "Equipment", level: 5, maxLevel: 10 }]
+  };
+
+  const currentSnapshot = {
+    ...previousSnapshot,
+    capturedAt: "2026-09-10T00:00:00.000Z",
+    trophies: 1300,
+    bestTrophies: 1400,
+    warStars: 110,
+    attackWins: 60,
+    defenseWins: 25,
+    donations: 260,
+    donationsReceived: 120,
+    heroes: [{ name: "Hero", level: 12, maxLevel: 20 }],
+    troops: [{ name: "Troop", level: 11, maxLevel: 20 }],
+    spells: [{ name: "Spell", level: 10, maxLevel: 20 }],
+    equipment: [{ name: "Equipment", level: 6, maxLevel: 10 }]
+  };
+
+  const playerAnalytics = analytics.analyzePlayerHistory(
+    [currentSnapshot, previousSnapshot],
+    [
+      { status: "completed", completedAt: "2026-09-09T00:00:00.000Z" },
+      { status: "active" }
+    ]
+  );
+  assert(playerAnalytics.trophies.delta === 300, "Player trophy trend failed.");
+  assert(playerAnalytics.upgrades.events === 3, "Upgrade event counting failed.");
+  assert(playerAnalytics.goals.completed === 1, "Goal analytics failed.");
+
+  const warAnalytics = analytics.analyzeWarHistory([
+    {
+      state: "warEnded",
+      opponentName: "Enemy",
+      totals: {
+        clanStars: 30,
+        opponentStars: 28,
+        clanDestruction: 90,
+        opponentDestruction: 88,
+        attacksUsed: 10,
+        possibleAttacks: 10,
+        threeStars: 4,
+        attackDestructionSum: 900
+      }
+    }
+  ]);
+  assert(warAnalytics.wins === 1 && warAnalytics.threeStarRate === 40, "War historical analytics failed.");
 }
 
 try {
