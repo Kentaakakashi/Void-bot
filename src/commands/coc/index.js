@@ -18,6 +18,20 @@ const {
 } = require("../../coc/formatProgress");
 
 const {
+  prioritiesEmbed,
+  readinessEmbed,
+  planEmbed,
+  goalsEmbed,
+  latestPlanEmbed
+} = require("../../coc/formatPlanning");
+
+const {
+  buildPriorities,
+  buildReadiness,
+  buildPlan
+} = require("../../coc/planner");
+
+const {
   saveSnapshot,
   getSnapshots,
   compareSnapshots
@@ -28,6 +42,17 @@ const {
   linkAccount,
   unlinkAccount
 } = require("../../database/repositories/cocAccounts");
+
+const {
+  createGoal,
+  getGoals,
+  removeGoal
+} = require("../../database/repositories/goals");
+
+const {
+  savePlan,
+  getLatestPlan
+} = require("../../database/repositories/plans");
 
 function normalizeTag(value) {
   const tag = String(value || "").trim().toUpperCase();
@@ -104,6 +129,102 @@ const data = new SlashCommandBuilder()
     subcommand
       .setName("progress")
       .setDescription("Show progression intelligence for your linked account.")
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("priorities")
+      .setDescription("Show VØID's upgrade priorities.")
+      .addStringOption((option) =>
+        option
+          .setName("focus")
+          .setDescription("Planning focus.")
+          .setRequired(false)
+          .addChoices(
+            { name: "General", value: "general" },
+            { name: "War", value: "war" },
+            { name: "Trophy", value: "trophy" }
+          )
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("readiness")
+      .setDescription("Check Town Hall readiness from tracked progression data.")
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("plan")
+      .setDescription("Generate and save a progression plan.")
+      .addStringOption((option) =>
+        option
+          .setName("focus")
+          .setDescription("Planning focus.")
+          .setRequired(true)
+          .addChoices(
+            { name: "General", value: "general" },
+            { name: "War", value: "war" },
+            { name: "Trophy", value: "trophy" }
+          )
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("goals")
+      .setDescription("List your active progression goals.")
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("goal-add")
+      .setDescription("Add a persistent progression goal.")
+      .addStringOption((option) =>
+        option
+          .setName("name")
+          .setDescription("Short goal name.")
+          .setRequired(true)
+          .setMaxLength(100)
+      )
+      .addStringOption((option) =>
+        option
+          .setName("description")
+          .setDescription("Optional goal details.")
+          .setRequired(false)
+          .setMaxLength(500)
+      )
+      .addStringOption((option) =>
+        option
+          .setName("focus")
+          .setDescription("Goal focus.")
+          .setRequired(true)
+          .addChoices(
+            { name: "General", value: "general" },
+            { name: "War", value: "war" },
+            { name: "Trophy", value: "trophy" }
+          )
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("goal-remove")
+      .setDescription("Remove a persistent progression goal.")
+      .addStringOption((option) =>
+        option
+          .setName("id")
+          .setDescription("Goal ID from /coc goals.")
+          .setRequired(true)
+          .setMaxLength(100)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("plan-latest")
+      .setDescription("Show your latest saved progression plan.")
   )
 
   .addSubcommand((subcommand) =>
@@ -234,6 +355,92 @@ async function execute(interaction) {
 
     return interaction.reply({
       embeds: [progressEmbed(player)]
+    });
+  }
+
+  if (subcommand === "priorities") {
+    const player = await requirePlayer(interaction);
+    const focus = interaction.options.getString("focus") || "general";
+    return interaction.reply({
+      embeds: [prioritiesEmbed(buildPriorities(player, focus))]
+    });
+  }
+
+  if (subcommand === "readiness") {
+    const player = await requirePlayer(interaction);
+    return interaction.reply({
+      embeds: [readinessEmbed(buildReadiness(player))]
+    });
+  }
+
+  if (subcommand === "plan") {
+    const player = await requirePlayer(interaction);
+    const focus = interaction.options.getString("focus", true);
+    const goals = await getGoals(interaction.guildId, interaction.user.id);
+    const plan = buildPlan(player, focus, goals);
+    const saved = await savePlan(
+      interaction.guildId,
+      interaction.user.id,
+      plan
+    );
+
+    return interaction.reply({
+      embeds: [planEmbed(saved)]
+    });
+  }
+
+  if (subcommand === "goals") {
+    const goals = await getGoals(
+      interaction.guildId,
+      interaction.user.id
+    );
+
+    return interaction.reply({
+      embeds: [goalsEmbed(goals)]
+    });
+  }
+
+  if (subcommand === "goal-add") {
+    const goal = await createGoal(
+      interaction.guildId,
+      interaction.user.id,
+      {
+        name: interaction.options.getString("name", true),
+        description: interaction.options.getString("description") || "",
+        focus: interaction.options.getString("focus", true)
+      }
+    );
+
+    return interaction.reply({
+      embeds: [
+        goalsEmbed([goal]).setTitle("🎯 VØID GOAL CREATED")
+      ]
+    });
+  }
+
+  if (subcommand === "goal-remove") {
+    const goalId = interaction.options.getString("id", true);
+    const removed = await removeGoal(
+      interaction.guildId,
+      interaction.user.id,
+      goalId
+    );
+
+    if (!removed) {
+      throw new Error("No goal was found with that ID.");
+    }
+
+    return interaction.reply("🎯 Goal " + goalId + " removed.");
+  }
+
+  if (subcommand === "plan-latest") {
+    const plan = await getLatestPlan(
+      interaction.guildId,
+      interaction.user.id
+    );
+
+    return interaction.reply({
+      embeds: [latestPlanEmbed(plan)]
     });
   }
 
