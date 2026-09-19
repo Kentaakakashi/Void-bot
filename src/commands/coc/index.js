@@ -32,6 +32,15 @@ const {
 } = require("../../coc/planner");
 
 const {
+  warAnalysisEmbed,
+  warHistoryEmbed
+} = require("../../coc/formatWar");
+
+const {
+  analyzeWar
+} = require("../../coc/war");
+
+const {
   saveSnapshot,
   getSnapshots,
   compareSnapshots
@@ -53,6 +62,11 @@ const {
   savePlan,
   getLatestPlan
 } = require("../../database/repositories/plans");
+
+const {
+  saveWar,
+  getWarHistory
+} = require("../../database/repositories/wars");
 
 function normalizeTag(value) {
   const tag = String(value || "").trim().toUpperCase();
@@ -225,6 +239,45 @@ const data = new SlashCommandBuilder()
     subcommand
       .setName("plan-latest")
       .setDescription("Show your latest saved progression plan.")
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("war-analyze")
+      .setDescription("Analyze the current war.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("war-snapshot")
+      .setDescription("Save the current war analysis.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("war-history")
+      .setDescription("Show saved war intelligence history.")
+      .addStringOption((option) =>
+        option
+          .setName("tag")
+          .setDescription("Clan tag.")
+          .setRequired(true)
+          .setMaxLength(20)
+      )
   )
 
   .addSubcommand((subcommand) =>
@@ -441,6 +494,58 @@ async function execute(interaction) {
 
     return interaction.reply({
       embeds: [latestPlanEmbed(plan)]
+    });
+  }
+
+  if (subcommand === "war-analyze") {
+    const tag = normalizeTag(
+      interaction.options.getString("tag", true)
+    );
+    const war = await getCurrentWar(tag);
+    const analysis = analyzeWar(war, tag);
+
+    return interaction.reply({
+      embeds: [warAnalysisEmbed(analysis)]
+    });
+  }
+
+  if (subcommand === "war-snapshot") {
+    const tag = normalizeTag(
+      interaction.options.getString("tag", true)
+    );
+    const war = await getCurrentWar(tag);
+    const analysis = analyzeWar(war, tag);
+
+    if (analysis.state === "notInWar") {
+      return interaction.reply({
+        embeds: [warAnalysisEmbed(analysis)]
+      });
+    }
+
+    const saved = await saveWar(
+      interaction.guildId,
+      analysis
+    );
+
+    return interaction.reply(
+      "War intelligence snapshot saved as " +
+        saved.id +
+        "."
+    );
+  }
+
+  if (subcommand === "war-history") {
+    const tag = normalizeTag(
+      interaction.options.getString("tag", true)
+    );
+    const history = await getWarHistory(
+      interaction.guildId,
+      tag,
+      10
+    );
+
+    return interaction.reply({
+      embeds: [warHistoryEmbed(history)]
     });
   }
 
