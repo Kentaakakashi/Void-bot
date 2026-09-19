@@ -143,6 +143,22 @@ function analyzeWar(war, clanTag) {
       : b.destruction - a.destruction
   );
 
+  const nameByTag = new Map(
+    opponentMembers.map((member) => [member?.tag, member?.name || "Unknown"])
+  );
+
+  const attackHistory = [...ownAttacks]
+    .sort((a, b) => Number(a?.order || 0) - Number(b?.order || 0))
+    .map((attack) => ({
+      order: Number(attack?.order || 0),
+      attackerTag: attack?.attackerTag || null,
+      defenderTag: attack?.defenderTag || null,
+      defenderName: nameByTag.get(attack?.defenderTag) || "Unknown",
+      stars: Number(attack?.stars || 0),
+      destructionPercentage: Number(attack?.destructionPercentage || 0),
+      duration: Number(attack?.duration || 0)
+    }));
+
   const attacksRemaining = memberPerformance.reduce(
     (sum, member) => sum + member.attacksRemaining,
     0
@@ -182,6 +198,7 @@ function analyzeWar(war, clanTag) {
     cleanupTargets: cleanups,
     untouchedOpponentBases,
     memberPerformance: rankedMemberPerformance,
+    attackHistory,
     opponentMembers: opponentReports
   };
 }
