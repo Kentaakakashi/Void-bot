@@ -180,6 +180,58 @@ function getAvailableTools() {
       },
       strict: true
     },
+
+    {
+      type: "function",
+      name: "get_donation_intelligence",
+      description: "Analyze current clan donations, donations received, and contribution ratios using live clan-member data.",
+      parameters: {
+        type: "object",
+        properties: {
+          clan_tag: {
+            type: "string",
+            description: "Clash of Clans clan tag including #."
+          }
+        },
+        required: ["clan_tag"],
+        additionalProperties: false
+      },
+      strict: true
+    },
+    {
+      type: "function",
+      name: "get_capital_intelligence",
+      description: "Analyze current Clan Capital information and recent raid seasons using live API data.",
+      parameters: {
+        type: "object",
+        properties: {
+          clan_tag: {
+            type: "string",
+            description: "Clash of Clans clan tag including #."
+          }
+        },
+        required: ["clan_tag"],
+        additionalProperties: false
+      },
+      strict: true
+    },
+    {
+      type: "function",
+      name: "get_clan_games_leaderboard",
+      description: "Get the manually tracked Clan Games leaderboard for a season.",
+      parameters: {
+        type: "object",
+        properties: {
+          season: {
+            type: "string",
+            description: "Clan Games season identifier."
+          }
+        },
+        required: ["season"],
+        additionalProperties: false
+      },
+      strict: true
+    },
     {
       type: "function",
       name: "get_current_war",
