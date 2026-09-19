@@ -25,11 +25,13 @@ function getWarIdentity(war, clanTag) {
   return [ownTag, opponentTag, start].join("|");
 }
 
-function analyzeMember(member, attacksPerMember) {
+function analyzeMember(member, attacksPerMember, battleDayOpen = false) {
   const attacks = getAttacks(member);
   const used = attacks.length;
   const allowed = Number(attacksPerMember || 1);
-  const remaining = Math.max(allowed - used, 0);
+  const remaining = battleDayOpen
+    ? Math.max(allowed - used, 0)
+    : 0;
   const stars = attacks.reduce(
     (sum, attack) => sum + Number(attack?.stars || 0),
     0
@@ -84,11 +86,12 @@ function analyzeWar(war, clanTag) {
   }
 
   const attacksPerMember = Number(war.attacksPerMember || 1);
+  const battleDayOpen = war.state === "inWar";
   const ownMembers = getMembers(war.clan);
   const opponentMembers = getMembers(war.opponent);
 
   const memberPerformance = ownMembers.map((member) =>
-    analyzeMember(member, attacksPerMember)
+    analyzeMember(member, attacksPerMember, battleDayOpen)
   );
 
   const ownAttacks = ownMembers.flatMap(getAttacks);
