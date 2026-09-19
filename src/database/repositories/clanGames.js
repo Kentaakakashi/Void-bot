@@ -50,6 +50,47 @@ async function getScores(guildId, season, limit = 50) {
   }));
 }
 
+async function getSeasonHistory(guildId, limit = 10) {
+  const seasonsSnapshot = await gamesRef(guildId)
+    .get();
+
+  const seasonDocs = [...seasonsSnapshot.docs]
+    .sort((a, b) =>
+      String(b.data()?.updatedAt || "").localeCompare(
+        String(a.data()?.updatedAt || "")
+      )
+    )
+    .slice(0, Math.min(Math.max(Number(limit) || 1, 1), 25));
+
+  const rows = [];
+
+  for (const seasonDoc of seasonDocs) {
+    const scores = await seasonDoc.ref
+      .collection("members")
+      .orderBy("points", "desc")
+      .limit(100)
+      .get();
+
+    const entries = scores.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    rows.push({
+      season: seasonDoc.id,
+      totalPoints: entries.reduce(
+        (sum, entry) => sum + Math.max(Number(entry.points || 0), 0),
+        0
+      ),
+      memberCount: entries.length,
+      topScorer: entries[0] || null,
+      updatedAt: seasonDoc.data()?.updatedAt || null
+    });
+  }
+
+  return rows;
+}
+
 async function removeScore(guildId, season, userId) {
   const ref = gamesRef(guildId)
     .doc(seasonDocId(season))
@@ -66,5 +107,6 @@ async function removeScore(guildId, season, userId) {
 module.exports = {
   setScore,
   getScores,
+  getSeasonHistory,
   removeScore
 };
