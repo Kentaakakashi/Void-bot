@@ -1,0 +1,1 @@
+require("dotenv").config(); const {start}=require("./src/core/startup"); start().catch(e=>{console.error("[FATAL] VØID HELPER failed to start:",e);process.exitCode=1;});
