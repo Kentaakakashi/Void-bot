@@ -1,5 +1,4 @@
 const openai = require("./client");
-const config = require("../config/config");
 
 const {
   SYSTEM_INSTRUCTIONS
@@ -20,32 +19,64 @@ const { getAvailableTools } = require("./tools");
 const { executeTool } = require("./toolHandlers");
 
 const MAX_TOOL_ROUNDS = 4;
+const GEMINI_MODEL = "gemini-3.8-flash";
 
 function buildMessageContent(content, imageUrls = []) {
   const parts = [];
 
   if (content) {
     parts.push({
-      type: "input_text",
+      type: "text",
       text: content
     });
   }
 
   for (const url of imageUrls) {
     parts.push({
-      type: "input_image",
-      image_url: url
+      type: "image_url",
+      image_url: {
+        url
+      }
     });
   }
 
   if (!parts.length) {
     parts.push({
-      type: "input_text",
+      type: "text",
       text: "Hello."
     });
   }
 
   return parts;
+}
+
+function toChatTools(tools) {
+  return tools.map((tool) => ({
+    type: "function",
+    function: {
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.parameters,
+      ...(tool.strict === undefined
+        ? {}
+        : { strict: tool.strict })
+    }
+  }));
+}
+
+function getAssistantMessage(response) {
+  return response?.choices?.[0]?.message || null;
+}
+
+function getToolCalls(message) {
+  return Array.isArray(message?.tool_calls)
+    ? message.tool_calls.filter(
+        (call) =>
+          call?.type === "function" &&
+          call?.function?.name &&
+          call?.id
+      )
+    : [];
 }
 
 async function generateReply({
@@ -76,7 +107,11 @@ async function generateReply({
     "\nCurrent message: " +
     (message.content || "[image-only message]");
 
-  let input = [
+  let messages = [
+    {
+      role: "system",
+      content: SYSTEM_INSTRUCTIONS
+    },
     ...history,
     {
       role: "user",
@@ -94,33 +129,38 @@ async function generateReply({
     round < MAX_TOOL_ROUNDS;
     round += 1
   ) {
-    response = await openai.responses.create({
-      model: config.openai.model,
-      instructions: SYSTEM_INSTRUCTIONS,
-      input,
-      tools: getAvailableTools(),
-      store: false
+    response = await openai.chat.completions.create({
+      model: GEMINI_MODEL,
+      messages,
+      tools: toChatTools(getAvailableTools())
     });
 
-    const calls = (response.output || [])
-      .filter((item) => item.type === "function_call");
+    const assistantMessage = getAssistantMessage(response);
+
+    if (!assistantMessage) {
+      throw new Error(
+        "The AI returned no assistant message."
+      );
+    }
+
+    const calls = getToolCalls(assistantMessage);
+
+    messages = [
+      ...messages,
+      assistantMessage
+    ];
 
     if (calls.length === 0) {
       break;
     }
-
-    input = [
-      ...input,
-      ...response.output
-    ];
 
     for (const call of calls) {
       let output;
 
       try {
         output = await executeTool(
-          call.name,
-          call.arguments,
+          call.function.name,
+          call.function.arguments,
           {
             guildId: message.guild.id,
             userId: message.author.id
@@ -134,16 +174,18 @@ async function generateReply({
         };
       }
 
-      input.push({
-        type: "function_call_output",
-        call_id: call.call_id,
-        output: JSON.stringify(output)
+      messages.push({
+        role: "tool",
+        tool_call_id: call.id,
+        content: JSON.stringify(output)
       });
     }
   }
 
   const output =
-    String(response?.output_text || "").trim();
+    String(
+      getAssistantMessage(response)?.content || ""
+    ).trim();
 
   if (!output) {
     throw new Error(
