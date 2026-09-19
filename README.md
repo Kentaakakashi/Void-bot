@@ -110,6 +110,56 @@ CWL war responses do not expose the classic-war attacksPerMember field, so CWL a
 
 Historical CWL analysis is based on the current CWL group and snapshots saved by VØID.
 
+## Phase 7 — Clan Capital, Donations & Clan Games
+
+Phase 7 adds clan activity intelligence.
+
+### Donations
+
+- Live clan member donation totals
+- Donations received
+- Contribution ratios
+- Top donor view
+- Lowest current contribution view
+- VØID AI donation analysis
+
+Command:
+- /coc donations
+
+### Clan Capital
+
+- Current Capital Hall level
+- Capital league
+- Clan Capital points
+- Recent Capital Raid Seasons
+- Recent season loot/attack/medal fields when returned by the API
+- Persistent Capital snapshots
+- Capital history
+- VØID AI Capital analysis
+
+Commands:
+- /coc capital
+- /coc capital-snapshot
+- /coc capital-history
+
+The public API provides the clan capital raid-season endpoint. VØID only displays Capital metrics when corresponding values are actually returned by the API.
+
+### Clan Games
+
+The public CoC API does not provide a Clan Games points endpoint. VØID therefore uses a separate Firestore tracker instead of inventing points.
+
+Commands:
+- /coc clan-games
+- /coc clan-games-set
+- /coc clan-games-remove
+
+Each Discord user can maintain their own tracked Clan Games score for a season.
+
+### AI tools
+
+- get_donation_intelligence
+- get_capital_intelligence
+- get_clan_games_leaderboard
 ## Future phases
 
 - Clan Capital intelligence
