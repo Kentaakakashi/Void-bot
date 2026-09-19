@@ -2,9 +2,7 @@
 
 Personal Clash of Clans intelligence assistant for a private Discord server.
 
-## Phase 1
-
-The foundation provides:
+## Phase 1 — Foundation + AI
 
 - Discord client and automatic guild command registration
 - Recursive command and event loading
@@ -21,50 +19,100 @@ The foundation provides:
 
 ## Phase 2 — Clash of Clans Intelligence
 
-Phase 2 adds live Clash of Clans account intelligence:
+- Linked Clash of Clans account per Discord user
+- Live player and clan lookup
+- Current classic war lookup
+- Live Clash data available to VØID AI
+- Persistent account links
 
-- Link one personal Clash of Clans player account per Discord user
-- Validate linked player tags against the live API
-- Player profile lookup
-- Clan profile lookup
-- Current war lookup
-- VØID AI tool access to live player, clan, and war data
-- AI can automatically use the user's linked account when appropriate
-- Persistent account links in Firestore
-
-### Commands
-
-- `/coc account link`
-- `/coc account show`
-- `/coc account unlink`
-- `/coc profile`
-- `/coc clan`
-- `/coc war`
+Commands:
+- /coc account link
+- /coc account show
+- /coc account unlink
+- /coc profile
+- /coc clan
+- /coc war
 
 ## Phase 3 — Progression Intelligence
 
-Phase 3 adds persistent account progression tracking:
-
-- Progress completion estimates for heroes, troops, spells, and equipment
+- Heroes, troops, spells, and equipment progression estimates
 - Incomplete upgrade lists
-- Persistent account snapshots in Firestore
-- Snapshot-to-snapshot progression comparison
-- `/coc progress`
-- `/coc snapshot`
-- `/coc history`
-- VØID AI access to live progression analysis
+- Persistent snapshots
+- Snapshot-to-snapshot comparisons
+- VØID progression analysis
 
-Snapshots record the account state returned by the Clash of Clans API at the moment they are captured. They do not invent upgrade timers or unavailable building data.
+Commands:
+- /coc progress
+- /coc snapshot
+- /coc history
+
+## Phase 4 — Upgrade & Planning Engine
+
+- General progression priorities
+- War-focused priorities
+- Trophy-focused priorities
+- Town Hall readiness analysis
+- Persistent goals
+- Saved progression plans
+- AI planning tools
+
+Commands:
+- /coc priorities
+- /coc readiness
+- /coc plan
+- /coc goals
+- /coc goal-add
+- /coc goal-remove
+- /coc plan-latest
+
+Priority scores are VØID heuristics, not official Clash of Clans recommendations.
+
+## Phase 5 — War Intelligence
+
+- Attack usage and unused attacks
+- Stars and destruction
+- Member performance
+- Opponent-base analysis
+- Cleanup targets
+- Untouched bases
+- Attack history
+- Persistent war snapshots and history
+- VØID AI war analysis
+
+Commands:
+- /coc war-analyze
+- /coc war-snapshot
+- /coc war-history
+
+## Phase 6 — CWL Intelligence
+
+- Current CWL group and season information
+- Participating clan overview
+- Round tracking
+- CWL war-by-war results
+- Stars and destruction
+- Attack efficiency
+- Three-star rate
+- Member performance across fetched rounds
+- Registered CWL roster coverage
+- Round matchup information
+- Persistent season snapshots
+- CWL history
+- VØID AI CWL analysis
+
+Commands:
+- /coc cwl
+- /coc cwl-analyze
+- /coc cwl-snapshot
+- /coc cwl-history
+
+CWL war responses do not expose the classic-war attacksPerMember field, so CWL attack usage is handled separately.
+
+Historical CWL analysis is based on the current CWL group and snapshots saved by VØID.
 
 ## Future phases
 
-- Heroes, pets, equipment, buildings and research intelligence
-- Upgrade planner
-- Progress tracking
-- Goals
-- War intelligence
-- CWL
-- Clan Capital
+- Clan Capital intelligence
 - Donations
 - Clan Games
 - Smart notifications
@@ -77,8 +125,6 @@ Snapshots record the account state returned by the Clash of Clans API at the mom
 
 Use Node.js 24.17+ and start with:
 
-```bash
 node index.js
-```
 
-Store all secrets in Bot-Hosting environment variables. Never commit `.env` or API keys to GitHub.
+Store all secrets in Bot-Hosting environment variables. Never commit .env or API keys to GitHub.
