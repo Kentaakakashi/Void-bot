@@ -1,0 +1,1 @@
+const OpenAI=require("openai"),config=require("../config/config");module.exports=new OpenAI({apiKey:config.openai.apiKey});
