@@ -75,21 +75,34 @@ function checkCommands() {
   }
 }
 
-function validateRequiredOptionOrder(options, location) {
+function validateRequiredOptionOrder(options, location, nested = false) {
+  if (!nested) {
+    for (const option of options || []) {
+      if (Array.isArray(option.options)) {
+        validateRequiredOptionOrder(
+          option.options,
+          `${location} ${option.name}`,
+          option.type === 1
+        );
+      }
+    }
+    return;
+  }
+
   let optionalSeen = false;
 
   for (const option of options || []) {
     if (option.required) {
-      assert(!optionalSeen, `Required option '${option.name}' appears after an optional option in ${location}.`);
+      assert(
+        !optionalSeen,
+        `Required option '${option.name}' appears after an optional option in ${location}.`
+      );
     } else {
       optionalSeen = true;
     }
-
-    if (Array.isArray(option.options) && option.type !== 2) {
-      validateRequiredOptionOrder(option.options, `${location} ${option.name}`);
-    }
   }
 }
+
 function validateOptionNames(options, location) {
   const names = new Set();
   for (const option of options || []) {
