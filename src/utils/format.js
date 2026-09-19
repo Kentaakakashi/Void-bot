@@ -1,0 +1,1 @@
+function splitMessage(t,max=1900){let s=String(t??"").trim(),o=[];while(s.length>max){let c=s.lastIndexOf("\n",max);if(c<max*.55)c=s.lastIndexOf(" ",max);if(c<max*.55)c=max;o.push(s.slice(0,c).trim());s=s.slice(c).trimStart();}if(s)o.push(s);return o;}function truncate(t,m){const s=String(t??"");return s.length<=m?s:s.slice(0,m-3)+"...";}module.exports={splitMessage,truncate};
