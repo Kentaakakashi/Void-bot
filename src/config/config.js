@@ -42,7 +42,7 @@ const config = {
 
   openai: {
     apiKey: required("OPENAI_API_KEY"),
-    model: process.env.OPENAI_MODEL?.trim() || "gpt-5.5",
+    model: process.env.OPENAI_MODEL?.trim() || "gpt-5.6",
     maxHistory: numberFromEnv("AI_MAX_HISTORY", 20),
     memoryLimit: numberFromEnv("AI_MEMORY_LIMIT", 50)
   },
