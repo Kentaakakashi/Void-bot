@@ -25,6 +25,27 @@ function warStartedEmbed(war) {
   );
 }
 
+function warEndedFromState(state) {
+  return notificationEmbed(
+    "🏁 WAR ENDED",
+    "**" +
+      (state.clanName || "Your Clan") +
+      "** — " +
+      Number(state.clanStars || 0) +
+      "⭐ / " +
+      Number(state.clanDestruction || 0) +
+      "%\n" +
+      "**" +
+      (state.opponentName || "Opponent") +
+      "** — " +
+      Number(state.opponentStars || 0) +
+      "⭐ / " +
+      Number(state.opponentDestruction || 0) +
+      "%",
+    0x4ade80
+  );
+}
+
 function warEndedEmbed(war) {
   return notificationEmbed(
     "🏁 WAR ENDED",
@@ -47,5 +68,6 @@ module.exports = {
   newWarEmbed,
   warStartedEmbed,
   warEndedEmbed,
+  warEndedFromState,
   missedAttacksEmbed
 };
