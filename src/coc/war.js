@@ -147,11 +147,19 @@ function analyzeWar(war, clanTag) {
     opponentMembers.map((member) => [member?.tag, member?.name || "Unknown"])
   );
 
+  const nameByTag = new Map(
+    opponentMembers.map((member) => [member?.tag, member?.name || "Unknown"])
+  );
+  const ownNameByTag = new Map(
+    ownMembers.map((member) => [member?.tag, member?.name || "Unknown"])
+  );
+
   const attackHistory = [...ownAttacks]
     .sort((a, b) => Number(a?.order || 0) - Number(b?.order || 0))
     .map((attack) => ({
       order: Number(attack?.order || 0),
       attackerTag: attack?.attackerTag || null,
+      attackerName: ownNameByTag.get(attack?.attackerTag) || "Unknown",
       defenderTag: attack?.defenderTag || null,
       defenderName: nameByTag.get(attack?.defenderTag) || "Unknown",
       stars: Number(attack?.stars || 0),
