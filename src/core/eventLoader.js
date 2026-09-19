@@ -1,1 +1,42 @@
-const fs=require("fs"),path=require("path");function walk(d){return fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>{const p=path.join(d,e.name);return e.isDirectory()?walk(p):e.isFile()&&e.name.endsWith(".js")?[p]:[]});}function loadEvents(c,d){for(const f of walk(d)){delete require.cache[require.resolve(f)];const e=require(f);if(!e?.name||typeof e.execute!=="function")continue;const fn=(...a)=>e.execute(...a);e.once?c.once(e.name,fn):c.on(e.name,fn);}}module.exports={loadEvents};
+const fs = require("fs");
+const path = require("path");
+
+function walk(directory) {
+  const files = [];
+
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const fullPath = path.join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...walk(fullPath));
+    } else if (entry.isFile() && entry.name.endsWith(".js")) {
+      files.push(fullPath);
+    }
+  }
+
+  return files;
+}
+
+function loadEvents(client, eventsDirectory) {
+  for (const filePath of walk(eventsDirectory)) {
+    delete require.cache[require.resolve(filePath)];
+
+    const event = require(filePath);
+
+    if (!event?.name || typeof event.execute !== "function") {
+      continue;
+    }
+
+    const handler = (...args) => event.execute(...args);
+
+    if (event.once) {
+      client.once(event.name, handler);
+    } else {
+      client.on(event.name, handler);
+    }
+  }
+}
+
+module.exports = {
+  loadEvents
+};
