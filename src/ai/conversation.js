@@ -1,1 +1,56 @@
-const config=require("../config/config"),{getRecentConversation,saveConversationMessage}=require("../database/repositories/conversations"),{truncate}=require("../utils/format");async function loadHistory(g,u){return(await getRecentConversation(g,u,config.openai.maxHistory)).map(x=>({role:x.role==="assistant"?"assistant":"user",content:truncate(x.content||"",3500)}));}async function rememberUserMessage(x){await saveConversationMessage({guildId:x.guildId,userId:x.userId,username:x.username,role:"user",content:x.content});}async function rememberAssistantMessage(x){await saveConversationMessage({guildId:x.guildId,userId:x.userId,username:"VØID",role:"assistant",content:x.content});}module.exports={loadHistory,rememberUserMessage,rememberAssistantMessage};
+const config = require("../config/config");
+
+const {
+  getRecentConversation,
+  saveConversationMessage
+} = require("../database/repositories/conversations");
+
+const { truncate } = require("../utils/format");
+
+async function loadHistory(guildId, userId) {
+  const rows = await getRecentConversation(
+    guildId,
+    userId,
+    config.openai.maxHistory
+  );
+
+  return rows.map((row) => ({
+    role: row.role === "assistant" ? "assistant" : "user",
+    content: truncate(row.content || "", 3500)
+  }));
+}
+
+async function rememberUserMessage({
+  guildId,
+  userId,
+  username,
+  content
+}) {
+  await saveConversationMessage({
+    guildId,
+    userId,
+    username,
+    role: "user",
+    content
+  });
+}
+
+async function rememberAssistantMessage({
+  guildId,
+  userId,
+  content
+}) {
+  await saveConversationMessage({
+    guildId,
+    userId,
+    username: "VØID",
+    role: "assistant",
+    content
+  });
+}
+
+module.exports = {
+  loadHistory,
+  rememberUserMessage,
+  rememberAssistantMessage
+};
