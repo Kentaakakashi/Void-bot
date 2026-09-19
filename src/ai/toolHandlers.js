@@ -1,0 +1,1 @@
+async function executeTool(){throw new Error("No AI tools are registered yet.");}module.exports={executeTool};
