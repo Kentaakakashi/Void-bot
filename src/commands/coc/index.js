@@ -13,6 +13,17 @@ const {
 } = require("../../coc/format");
 
 const {
+  progressEmbed,
+  snapshotDiffEmbed
+} = require("../../coc/formatProgress");
+
+const {
+  saveSnapshot,
+  getSnapshots,
+  compareSnapshots
+} = require("../../database/repositories/progression");
+
+const {
   getLinkedAccount,
   linkAccount,
   unlinkAccount
@@ -87,6 +98,24 @@ const data = new SlashCommandBuilder()
           .setRequired(true)
           .setMaxLength(20)
       )
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("progress")
+      .setDescription("Show progression intelligence for your linked account.")
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("snapshot")
+      .setDescription("Capture your current account progression.")
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("history")
+      .setDescription("Compare your latest progression snapshots.")
   )
 
   .addSubcommand((subcommand) =>
@@ -186,6 +215,77 @@ async function execute(interaction) {
 
     return interaction.reply({
       embeds: [playerEmbed(player)]
+    });
+  }
+
+  if (subcommand === "progress") {
+    const account = await getLinkedAccount(
+      interaction.guildId,
+      interaction.user.id
+    );
+
+    if (!account) {
+      throw new Error(
+        "No linked account found. Use /coc account link first."
+      );
+    }
+
+    const player = await getPlayer(account.playerTag);
+
+    return interaction.reply({
+      embeds: [progressEmbed(player)]
+    });
+  }
+
+  if (subcommand === "snapshot") {
+    const account = await getLinkedAccount(
+      interaction.guildId,
+      interaction.user.id
+    );
+
+    if (!account) {
+      throw new Error(
+        "No linked account found. Use /coc account link first."
+      );
+    }
+
+    const player = await getPlayer(account.playerTag);
+    await saveSnapshot(
+      interaction.guildId,
+      interaction.user.id,
+      player
+    );
+
+    return interaction.reply(
+      "📸 Progression snapshot captured. I shall remember how things looked."
+    );
+  }
+
+  if (subcommand === "history") {
+    const snapshots = await getSnapshots(
+      interaction.guildId,
+      interaction.user.id,
+      2
+    );
+
+    if (snapshots.length < 2) {
+      return interaction.reply(
+        "I need at least two snapshots before I can compare progression."
+      );
+    }
+
+    const current = snapshots[0];
+    const previous = snapshots[1];
+    const comparison = compareSnapshots(previous, current);
+
+    return interaction.reply({
+      embeds: [
+        snapshotDiffEmbed(
+          previous,
+          current,
+          comparison
+        )
+      ]
     });
   }
 
