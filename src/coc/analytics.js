@@ -531,7 +531,7 @@ function analyzeActivityHistory({
     uniqueCapital.push(entry);
   }
 
-  const gamesSeries = sortByTime(clanGames, ["season", "savedAt"]);
+  const gamesSeries = sortByTime(clanGames, ["updatedAt", "savedAt"]);
 
   return {
     donations: {
