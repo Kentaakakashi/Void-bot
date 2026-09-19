@@ -1,4 +1,5 @@
 const logger = require("../utils/logger");
+const { startNotificationManager } = require("../notifications/manager");
 
 module.exports = {
   name: "clientReady",
@@ -12,5 +13,7 @@ module.exports = {
     logger.info(
       `Connected to ${client.guilds.cache.size} server(s).`
     );
+
+    startNotificationManager(client);
   }
 };
