@@ -60,28 +60,75 @@ function firstNumber(object, keys) {
 }
 
 function summarizeCapitalSeason(season) {
+  const members = Array.isArray(season?.members)
+    ? season.members
+    : [];
+
+  const totalAttacks = Number(season?.totalAttacks || 0);
+  const totalLoot = Number(season?.capitalTotalLoot || 0);
+  const raidMedals = Number(season?.offensiveReward || 0) +
+    Number(season?.defensiveReward || 0);
+
   return {
     state: season?.state || null,
     startTime: season?.startTime || null,
     endTime: season?.endTime || null,
-    season: season?.season || null,
-    attacks: firstNumber(season, ["totalAttacks", "attacks", "attackCount"]),
-    loot: firstNumber(season, ["totalLoot", "capitalTotalLoot", "offensiveLoot"]),
-    raidMedals: firstNumber(season, ["raidMedals", "medalsEarned"]),
-    districtsDestroyed: firstNumber(season, ["districtsDestroyed"]),
-    attackLimit: firstNumber(season, ["attackLimit"]),
-    raw: season || {}
+    capitalTotalLoot: totalLoot,
+    raidsCompleted: Number(season?.raidsCompleted || 0),
+    totalAttacks,
+    enemyDistrictsDestroyed: Number(season?.enemyDistrictsDestroyed || 0),
+    offensiveReward: Number(season?.offensiveReward || 0),
+    defensiveReward: Number(season?.defensiveReward || 0),
+    raidMedals,
+    attacksUsed: totalAttacks,
+    memberCount: members.length,
+    members: members.map((member) => ({
+      tag: member?.tag || null,
+      name: member?.name || "Unknown",
+      attacks: Number(member?.attacks || 0),
+      attackLimit: Number(member?.attackLimit || 0),
+      bonusAttackLimit: Number(member?.bonusAttackLimit || 0),
+      capitalResourcesLooted: Number(member?.capitalResourcesLooted || 0)
+    }))
   };
 }
 
 function analyzeCapital(clan, seasonsData) {
-  const seasons = Array.isArray(seasonsData?.items) ? seasonsData.items : [];
+  const seasons = Array.isArray(seasonsData?.items)
+    ? seasonsData.items
+    : [];
+
+  const memberList = Array.isArray(clan?.memberList)
+    ? clan.memberList
+    : [];
+
+  const capital = clan?.clanCapital || {};
+  const districts = Array.isArray(capital?.districts)
+    ? capital.districts
+    : [];
+
+  const contributors = memberList
+    .map((member) => ({
+      tag: member?.tag || null,
+      name: member?.name || "Unknown",
+      townHallLevel: Number(member?.townHallLevel || 0),
+      capitalContributions: Number(member?.clanCapitalContributions || 0)
+    }))
+    .sort((a, b) => b.capitalContributions - a.capitalContributions);
+
   return {
     clanTag: clan?.tag || null,
     clanName: clan?.name || "Unknown Clan",
-    capitalHallLevel: Number(clan?.clanCapital?.capitalHallLevel || 0),
+    capitalHallLevel: Number(capital?.capitalHallLevel || 0),
     capitalLeague: clan?.capitalLeague || null,
     clanCapitalPoints: Number(clan?.clanCapitalPoints || 0),
+    clanGoldSinkTotal: Number(capital?.clanGoldSinkTotal || 0),
+    districts: districts.map((district) => ({
+      id: Number(district?.id || 0),
+      name: district?.name || "Unknown",
+      districtHallLevel: Number(district?.districtHallLevel || 0)
+    })),
+    topContributors: contributors.slice(0, 15),
     latestSeason: seasons.length ? summarizeCapitalSeason(seasons[0]) : null,
     seasons: seasons.map(summarizeCapitalSeason)
   };
